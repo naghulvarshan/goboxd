@@ -27,13 +27,21 @@ COPY go.mod ./
 RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/goboxd ./cmd/goboxd
+COPY config.yaml /out/config.yaml
 
 # ---- Runtime image ----
 FROM debian:${DEBIAN_VERSION}-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates libnl-route-3-200 libprotobuf32 \
     && rm -rf /var/lib/apt/lists/*
+
+COPY scripts/ /app/scripts/
+RUN chmod +x /app/scripts/install.sh && /app/scripts/install.sh
+
 COPY --from=nsjail-builder /usr/local/bin/nsjail /usr/local/bin/nsjail
 COPY --from=builder        /out/goboxd          /usr/local/bin/goboxd
+COPY --from=builder        /out/config.yaml          /usr/local/bin/config.yaml
+
+
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/goboxd"]

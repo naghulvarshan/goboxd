@@ -6,7 +6,15 @@ type InvalidInputError struct {
 	Err error
 }
 
+type InternalServerError struct {
+	Err error
+}
+
 func (i InvalidInputError) Error() string {
+	return i.Err.Error()
+}
+
+func (i InternalServerError) Error() string {
 	return i.Err.Error()
 }
 

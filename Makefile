@@ -17,3 +17,8 @@ integration:
 
 lint:
 	$(TOOLS) golangci-lint run ./...
+
+shell:
+	@docker compose run --rm goboxd bash
+
+build_and_run: build run

@@ -14,6 +14,7 @@ const (
 	MalformedFileNameErrCode = "malformed_filename"
 	OverSizedBodyErrCode     = "oversized_body"
 	DisallowedFlageErrCode   = "disallowed_flag"
+	TakeFromRequest          = "TAKE_FROM_REQUEST"
 )
 
 type ProgramInfo struct {
@@ -43,9 +44,9 @@ type Tests struct {
 }
 
 type Response struct {
-	Status     string           `json:"status"`
-	Build      ExecutionDetails `json:"build"`
-	TestOutput TestOutput       `json:"test"`
+	Status      string           `json:"status"`
+	Build       ExecutionDetails `json:"build"`
+	TestOutputs []TestOutput     `json:"test"`
 }
 
 type ExecutionDetails struct {
@@ -109,4 +110,29 @@ func UnmarshallRequest(body []byte) (*ProgramInfo, error) {
 		}
 	}
 	return req, nil
+}
+
+type Config struct {
+	NsjailPath            string                      `json:"nsjail_path"`
+	DefaultCommonSettings map[string]string           `json:"default_common_settings"`
+	LanguageSettings      map[string]LanguageSettings `json:"language_settings"`
+}
+
+type LanguageSettings struct {
+	FileName        string   `json:"filename"`
+	BinaryFileName  *string  `json:"binary_filename"`
+	CompilationOpts *Options `json:"compilation_options"`
+	RuntimeOpts     Options  `json:"runtime_options"`
+}
+
+type Options struct {
+	Path           string `json:"path"`
+	Args           string `json:"args"`
+	ResourceLimits Limits `json:"resource_limits"`
+}
+
+type ResourceLimit struct {
+	TimeLimit    int `json:"time_limit"`
+	ProcessLimit int `json:"process_limit"`
+	MemLimit     int `json:"memory_limit"` // memory limit in kb
 }

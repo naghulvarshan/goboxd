@@ -1,0 +1,31 @@
+---
+nsjail_path: "{{ HOME }}/nsjail/nsjail"
+default_common_settings: 
+  nsjail_args: "-B /bin -B /usr -B /lib -B /dev -B /etc -B /var"
+language_settings:
+  c:
+    filename: "test.c"
+    compilation_options:
+      path: "/usr/bin/gcc"
+      args: "{{ EXTRA_ARGS }} -o a.out {{ FILENAME }}"
+      resource_limits:
+        time_limit: 3
+        process_limit: 100
+        memory_limit: 10240
+    runtime_options:
+      path: "a.out"
+      args: ""
+      resource_limits:
+        time_limit: 3
+        process_limit: 0
+        memory_limit: 1024
+  py:
+    filename: "test.py"
+    runtime_options:
+      path: "/usr/local/bin/python2.7"
+      args: "{{ FILENAME }}"
+      resource_limits:
+        time_limit: 9
+        process_limit: 100
+        memory_limit: 102400
+    

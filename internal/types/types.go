@@ -3,6 +3,8 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"unicode"
 )
 
 const (
@@ -15,6 +17,7 @@ const (
 	OverSizedBodyErrCode     = "oversized_body"
 	DisallowedFlageErrCode   = "disallowed_flag"
 	TakeFromRequest          = "TAKE_FROM_REQUEST"
+	SourceMaxLimit           = 256 * 1025 // Restricting maximum size of source file
 )
 
 type ProgramInfo struct {
@@ -107,6 +110,52 @@ func UnmarshallRequest(body []byte) (*ProgramInfo, error) {
 				Code:    InvalidFieldErrCode,
 				Message: "at least one test case is required",
 			},
+		}
+	}
+	if len(req.Source) > SourceMaxLimit {
+		return nil, PreBuildError{
+			ErrorDetails: ErrorDetails{
+				Code:    "max_limit_exceeded",
+				Message: "maximum size for source is 256KiB",
+			},
+		}
+	}
+	if req.SourceFileName != nil {
+		if *req.SourceFileName == "" {
+			return nil, PreBuildError{
+				ErrorDetails: ErrorDetails{
+					Code:    InvalidFileNameErrCode,
+					Message: "filename cannot be empty string",
+				},
+			}
+		}
+		if len(*req.SourceFileName) > 255 {
+			return nil, PreBuildError{
+				ErrorDetails: ErrorDetails{
+					Code:    InvalidFileNameErrCode,
+					Message: "filename is too long",
+				},
+			}
+		}
+		// block path traversal
+		if strings.Contains(*req.SourceFileName, "/") || strings.Contains(*req.SourceFileName, "..") {
+			return nil, PreBuildError{
+				ErrorDetails: ErrorDetails{
+					Code:    InvalidFileNameErrCode,
+					Message: "filename contains / or .. ",
+				},
+			}
+		}
+		// only allow alphanumeric, dash, underscore, dot
+		for _, c := range *req.SourceFileName {
+			if !unicode.IsLetter(c) && !unicode.IsDigit(c) && c != '-' && c != '_' && c != '.' {
+				return nil, PreBuildError{
+					ErrorDetails: ErrorDetails{
+						Code:    InvalidFileNameErrCode,
+						Message: "filename contains invalid characters. only alphanumeric, dash, underscore, dot characters are allowed",
+					},
+				}
+			}
 		}
 	}
 	return req, nil

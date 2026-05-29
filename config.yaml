@@ -1,7 +1,7 @@
 ---
 nsjail_path: "{{ HOME }}/nsjail/nsjail"
 default_common_settings: 
-  nsjail_args: "-B /bin -B /usr -B /lib -B /dev -B /etc -B /var"
+  nsjail_args: "-B /bin -B /usr -B /lib -B /dev -B /etc -B /var -B /dev"
 language_settings:
   c:
     filename: "test.c"
@@ -28,4 +28,19 @@ language_settings:
         time_limit: 9
         process_limit: 100
         memory_limit: 102400
-    
+  cpp:
+    filename: "test.cpp"
+    compilation_options:
+      path: "/usr/bin/g++"
+      args: "{{ EXTRA_ARGS }} -o a.out {{ FILENAME }}"
+      resource_limits:
+        time_limit: 3
+        process_limit: 100
+        memory_limit: 10240
+    runtime_options:
+      path: "a.out"
+      args: ""
+      resource_limits:
+        time_limit: 3
+        process_limit: 0
+        memory_limit: 1024

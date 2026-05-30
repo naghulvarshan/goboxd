@@ -1,0 +1,22 @@
+request:
+  language: py3
+  source: |
+    print("Python 3 advanced test")
+    import sys
+    data = list(range(100))
+    print(f"Processed {len(data)} items")
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Python 3 advanced test\nProcessed 100 items\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Python 3 advanced test\nProcessed 100 items\n"

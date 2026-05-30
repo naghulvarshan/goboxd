@@ -1,0 +1,24 @@
+request:
+  language: c
+  source: "#include <stdio.h>\nint main() { int a = 0; printf(\"done\"); return 0; }"
+  source_filename: solution.c
+  artifact_filename: solution
+  build:
+    limits:
+      wall_time_s: 3
+      memory_kb: 10240
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "done"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "done"

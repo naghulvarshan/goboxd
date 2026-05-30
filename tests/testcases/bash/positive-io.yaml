@@ -1,0 +1,18 @@
+request:
+  language: bash
+  source: "#!/bin/bash\nread n\nfor ((i=1; i<=n; i++)); do\n  echo \"Line $i\"\ndone"
+  source_filename: solution.sh
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: "3"
+      expected_stdout: "Line 1\nLine 2\nLine 3\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Line 1\nLine 2\nLine 3\n"

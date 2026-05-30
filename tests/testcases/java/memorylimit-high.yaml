@@ -1,0 +1,32 @@
+request:
+  language: java
+  source: |
+    import java.util.*;
+    public class Solution {
+        public static void main(String[] args) {
+            List<Integer> data = new ArrayList<>();
+            for (int i = 0; i < 1000; i++) data.add(i);
+            System.out.println("Memory test completed");
+        }
+    }
+  source_filename: Solution.java
+  artifact_filename: Solution
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 300
+  tests:
+    - stdin: ""
+      expected_stdout: "Memory test completed\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Memory test completed\n"

@@ -1,0 +1,22 @@
+request:
+  language: javascript
+  source: |
+    console.log("JavaScript advanced test");
+    const arr = [1, 2, 3, 4, 5];
+    const sum = arr.reduce((a, b) => a + b, 0);
+    console.log(`Sum: ${sum}`);
+  source_filename: solution.js
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "JavaScript advanced test\nSum: 15\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "JavaScript advanced test\nSum: 15\n"

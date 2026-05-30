@@ -1,0 +1,47 @@
+request:
+  language: java
+  source: |
+    import java.util.Scanner;
+    public class Factorial {
+        public static void main(String[] args) {
+            Scanner sc = new Scanner(System.in);
+            int n = sc.nextInt();
+            long factorial = 1;
+            for (int i = 1; i <= n; i++) factorial *= i;
+            System.out.println(factorial);
+            sc.close();
+        }
+    }
+  source_filename: Factorial.java
+  artifact_filename: Factorial
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 51200
+      max_processes: 300
+  tests:
+    - stdin: "5"
+      expected_stdout: "120\n"
+    - stdin: "0"
+      expected_stdout: "1\n"
+    - stdin: "10"
+      expected_stdout: "3628800\n"
+    - stdin: "15"
+      expected_stdout: "1307674368000\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "120\n"
+    - status: success
+      stdout: "1\n"
+    - status: success
+      stdout: "3628800\n"
+    - status: success
+      stdout: "1307674368000\n"

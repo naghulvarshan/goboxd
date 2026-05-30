@@ -1,0 +1,34 @@
+request:
+  language: java
+  source: |
+    import java.util.Scanner;
+    public class Solution {
+        public static void main(String[] args) {
+            Scanner sc = new Scanner(System.in);
+            int n = sc.nextInt();
+            for (int i = 1; i <= n; i++) {
+                System.out.println("Line " + i);
+            }
+        }
+    }
+  source_filename: Solution.java
+  artifact_filename: Solution
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 51200
+      max_processes: 300
+  tests:
+    - stdin: "3"
+      expected_stdout: "Line 1\nLine 2\nLine 3\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Line 1\nLine 2\nLine 3\n"

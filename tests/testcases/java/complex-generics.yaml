@@ -1,0 +1,76 @@
+request:
+  language: java
+  source: |
+    import java.util.*;
+
+    class Pair<T, U> {
+        private T first;
+        private U second;
+
+        public Pair(T first, U second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        public T getFirst() { return first; }
+        public U getSecond() { return second; }
+
+        @Override
+        public String toString() {
+            return "(" + first + ", " + second + ")";
+        }
+    }
+
+    public class ComplexGenerics {
+        public static <T extends Comparable<T>> T findMax(List<T> list) {
+            if (list.isEmpty()) return null;
+            T max = list.get(0);
+            for (T item : list) {
+                if (item.compareTo(max) > 0) {
+                    max = item;
+                }
+            }
+            return max;
+        }
+
+        public static void main(String[] args) {
+            Scanner sc = new Scanner(System.in);
+            int n = sc.nextInt();
+
+            List<Integer> numbers = new ArrayList<>();
+            List<Pair<Integer, String>> pairs = new ArrayList<>();
+
+            for (int i = 0; i < n; i++) {
+                int num = sc.nextInt();
+                numbers.add(num);
+                pairs.add(new Pair<>(i, "Value_" + num));
+            }
+
+            Integer maxNumber = findMax(numbers);
+            System.out.println("Max number: " + maxNumber);
+            System.out.println("Pairs: " + pairs);
+
+            sc.close();
+        }
+    }
+  source_filename: ComplexGenerics.java
+  artifact_filename: ComplexGenerics
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 51200
+      max_processes: 300
+  tests:
+    - stdin: "4 10 20 5 15"
+      expected_stdout: "Max number: 20\nPairs: [(0, Value_10), (1, Value_20), (2, Value_5), (3, Value_15)]\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Max number: 20\nPairs: [(0, Value_10), (1, Value_20), (2, Value_5), (3, Value_15)]\n"

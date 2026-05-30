@@ -1,0 +1,39 @@
+request:
+  language: java
+  source: |
+    import java.util.Scanner;
+    public class SimpleIO {
+        public static void main(String[] args) {
+            Scanner sc = new Scanner(System.in);
+            int a = sc.nextInt();
+            int b = sc.nextInt();
+            System.out.println("Sum: " + (a + b));
+            System.out.println("Product: " + (a * b));
+            sc.close();
+        }
+    }
+  source_filename: SimpleIO.java
+  artifact_filename: SimpleIO
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 51200
+      max_processes: 300
+  tests:
+    - stdin: "5 3"
+      expected_stdout: "Sum: 8\nProduct: 15\n"
+    - stdin: "10 20"
+      expected_stdout: "Sum: 30\nProduct: 200\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Sum: 8\nProduct: 15\n"
+    - status: success
+      stdout: "Sum: 30\nProduct: 200\n"

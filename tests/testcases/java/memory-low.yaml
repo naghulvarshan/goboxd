@@ -1,0 +1,31 @@
+request:
+  language: java
+  source: |
+    public class MemoryLow {
+        public static void main(String[] args) {
+            int sum = 0;
+            for (int i = 1; i <= 100; i++) sum += i;
+            System.out.println("Sum: " + sum);
+        }
+    }
+  source_filename: MemoryLow.java
+  artifact_filename: MemoryLow
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 10240
+      max_processes: 300
+  tests:
+    - stdin: ""
+      expected_stdout: "Sum: 5050\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Sum: 5050\n"

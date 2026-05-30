@@ -1,0 +1,21 @@
+request:
+  language: javascript
+  source: |
+    setTimeout(() => {
+        console.log("Time test completed");
+    }, 100);
+  source_filename: solution.js
+  run:
+    limits:
+      wall_time_s: 9
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Time test completed\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Time test completed\n"

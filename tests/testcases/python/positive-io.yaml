@@ -1,0 +1,27 @@
+request:
+  language: py
+  source: |
+    import sys
+    lines = [line.rstrip() for line in sys.stdin]
+    for i, line in enumerate(lines, 1):
+        print("Line " + str(i) + ": " + str(len(line.split())) + " words, " + str(len(line)) + " characters")
+        print("Content: " + line)
+    print("\nSummary:")
+    print("Total lines: " + str(len(lines)))
+    print("Total words: " + str(sum(len(l.split()) for l in lines)))
+    print("Total characters: " + str(sum(len(l) for l in lines)))
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 1024
+      max_processes: 64
+  tests:
+    - stdin: "Hello World\nPython Programming\nTest Case"
+      expected_stdout: "Line 1: 2 words, 11 characters\nContent: Hello World\nLine 2: 2 words, 18 characters\nContent: Python Programming\nLine 3: 2 words, 9 characters\nContent: Test Case\n\nSummary:\nTotal lines: 3\nTotal words: 6\nTotal characters: 38\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Line 1: 2 words, 11 characters\nContent: Hello World\nLine 2: 2 words, 18 characters\nContent: Python Programming\nLine 3: 2 words, 9 characters\nContent: Test Case\n\nSummary:\nTotal lines: 3\nTotal words: 6\nTotal characters: 38\n"

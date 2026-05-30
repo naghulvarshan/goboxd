@@ -1,0 +1,57 @@
+request:
+  language: java
+  source: |
+    import java.util.*;
+
+    public class ComplexCollections {
+        public static void main(String[] args) {
+            Scanner sc = new Scanner(System.in);
+            int n = sc.nextInt();
+
+            List<Integer> list = new ArrayList<>();
+            Set<Integer> set = new HashSet<>();
+            Map<Integer, Integer> map = new HashMap<>();
+            Queue<Integer> queue = new LinkedList<>();
+            Stack<Integer> stack = new Stack<>();
+
+            for (int i = 0; i < n; i++) {
+                int val = sc.nextInt();
+                list.add(val);
+                set.add(val);
+                map.put(i, val);
+                queue.offer(val);
+                stack.push(val);
+            }
+
+            Collections.sort(list);
+
+            System.out.println("List: " + list);
+            System.out.println("Set size: " + set.size());
+            System.out.println("Map keys: " + map.keySet());
+            System.out.println("Queue peek: " + queue.peek());
+            System.out.println("Stack peek: " + stack.peek());
+
+            sc.close();
+        }
+    }
+  source_filename: ComplexCollections.java
+  artifact_filename: ComplexCollections
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 51200
+      max_processes: 300
+  tests:
+    - stdin: "5 3 1 4 1 5"
+      expected_stdout: "List: [1, 1, 3, 4, 5]\nSet size: 4\nMap keys: [0, 1, 2, 3, 4]\nQueue peek: 3\nStack peek: 5\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "List: [1, 1, 3, 4, 5]\nSet size: 4\nMap keys: [0, 1, 2, 3, 4]\nQueue peek: 3\nStack peek: 5\n"

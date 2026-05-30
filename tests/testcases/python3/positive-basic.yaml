@@ -1,0 +1,18 @@
+request:
+  language: py3
+  source: "print(\"Hello from Python 3!\")"
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Hello from Python 3!\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Hello from Python 3!\n"

@@ -1,0 +1,21 @@
+request:
+  language: py
+  source: |
+    for i in range(10000):
+        pass
+    print("Time test completed")
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 9
+      memory_kb: 102400
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Time test completed\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Time test completed\n"

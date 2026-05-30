@@ -1,0 +1,31 @@
+request:
+  language: cpp
+  source: |
+    #include <iostream>
+    int main() {
+        int n;
+        std::cin >> n;
+        for (int i = 1; i <= n; i++) std::cout << "Line " << i << std::endl;
+        return 0;
+    }
+  source_filename: solution.cpp
+  artifact_filename: solution
+  build:
+    limits:
+      wall_time_s: 3
+      memory_kb: 1024
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: "3"
+      expected_stdout: "Line 1\nLine 2\nLine 3\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Line 1\nLine 2\nLine 3\n"

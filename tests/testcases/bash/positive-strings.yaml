@@ -1,0 +1,23 @@
+request:
+  language: bash
+  source: |
+    #!/bin/bash
+    read text
+    echo "Original: $text"
+    echo "Uppercase: ${text^^}"
+    echo "Length: ${#text}"
+  source_filename: solution.sh
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: "hello world"
+      expected_stdout: "Original: hello world\nUppercase: HELLO WORLD\nLength: 11\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Original: hello world\nUppercase: HELLO WORLD\nLength: 11\n"

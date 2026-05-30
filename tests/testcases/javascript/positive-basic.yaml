@@ -1,0 +1,18 @@
+request:
+  language: javascript
+  source: "console.log(\"Hello from JavaScript!\");"
+  source_filename: solution.js
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Hello from JavaScript!\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Hello from JavaScript!\n"

@@ -1,0 +1,31 @@
+request:
+  language: java
+  source: |
+    public class TimeQuick {
+        public static void main(String[] args) {
+            int result = 0;
+            for (int i = 0; i < 1000; i++) result += i;
+            System.out.println("Result: " + result);
+        }
+    }
+  source_filename: TimeQuick.java
+  artifact_filename: TimeQuick
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 51200
+      max_processes: 300
+  tests:
+    - stdin: ""
+      expected_stdout: "Result: 499500\n"
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "Result: 499500\n"

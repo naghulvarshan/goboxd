@@ -1,0 +1,30 @@
+request:
+  language: java
+  source: |
+    public class TimeExceeded {
+        public static void main(String[] args) {
+            while (true) {
+                Math.sqrt(Math.random());
+            }
+        }
+    }
+  source_filename: TimeExceeded.java
+  artifact_filename: TimeExceeded
+  build:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 1
+  run:
+    limits:
+      wall_time_s: 2
+      memory_kb: 51200
+      max_processes: 300
+  tests:
+    - stdin: ""
+      expected_stdout: ""
+
+expected:
+  status: success
+  tests:
+    - status: errored

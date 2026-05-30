@@ -1,0 +1,33 @@
+request:
+  language: cpp
+  source: |
+    #include <iostream>
+    #include <vector>
+    int main() {
+        std::vector<int> v = {1, 2, 3, 4, 5};
+        for (auto& x : v) std::cout << x << " ";
+        return 0;
+    }
+  source_filename: solution.cpp
+  artifact_filename: solution
+  build:
+    limits:
+      wall_time_s: 3
+      memory_kb: 1024
+      max_processes: 1
+    flags:
+      - "--std=c++11"
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "1 2 3 4 5 "
+
+expected:
+  status: success
+  tests:
+    - status: success
+      stdout: "1 2 3 4 5 "

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -29,6 +30,21 @@ func main() {
 	}
 
 	out, _ := yaml.Marshal(cf)
+	if err := InitCgroupBase(); err != nil {
+		slog.Warn("cgroup memory tracking disabled", "error", err)
+	}
 	slog.Debug("config", "config content", string(out))
 	server.Serve(port, cf)
+}
+
+func InitCgroupBase() error {
+	// cgroup.controllers only exists on cgroupv2 mounts
+	if _, err := os.Stat("/sys/fs/cgroup/cgroup.controllers"); err != nil {
+		return fmt.Errorf("cgroupv2 not available at /sys/fs/cgroup: %w", err)
+	}
+	const base = "/sys/fs/cgroup/goboxd"
+	if err := os.MkdirAll(base, 0755); err != nil {
+		return err
+	}
+	return os.WriteFile(base+"/cgroup.subtree_control", []byte("+memory"), 0644)
 }

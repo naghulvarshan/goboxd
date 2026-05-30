@@ -46,6 +46,7 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 
 		}
 	}
+	os.Mkdir(baseDir+"/proc", 0755)
 
 	// Step 2: Write the program to a file
 	filename := languageConfig.FileName
@@ -75,7 +76,9 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 	}
 
 	// Step 4: Compile if needed
-	output := types.Response{}
+	output := types.Response{
+		Status: "success",
+	}
 	if languageConfig.CompilationOpts != nil {
 		slog.Debug("compiling program")
 		args := []string{"--rw", "--log", baseDir + "/log",
@@ -83,12 +86,18 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 		// TODO: override from input if available
 		if input.Build.Limits.MaxProcesses != 0 {
 			args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(input.Build.Limits.MaxProcesses), 10))
+		} else if languageConfig.CompilationOpts.ResourceLimits.MaxProcesses != 0 {
+			args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(languageConfig.CompilationOpts.ResourceLimits.MaxProcesses), 10))
 		}
 		if input.Build.Limits.MemoryKB != 0 {
 			args = append(args, "--rlimit_as", strconv.FormatInt(input.Build.Limits.MemoryKB, 10))
+		} else if languageConfig.CompilationOpts.ResourceLimits.MemoryKB != 0 {
+			args = append(args, "--rlimit_as", strconv.FormatInt(languageConfig.CompilationOpts.ResourceLimits.MemoryKB, 10))
 		}
 		if input.Build.Limits.WallTime != 0 {
 			args = append(args, "--time_limit", strconv.FormatInt(int64(input.Build.Limits.WallTime), 10))
+		} else if languageConfig.CompilationOpts.ResourceLimits.WallTime != 0 {
+			args = append(args, "--time_limit", strconv.FormatInt(int64(languageConfig.CompilationOpts.ResourceLimits.WallTime), 10))
 		}
 		args = append(args, strings.Fields(defaultArgs)...)
 		fmt.Printf("defaultArgs: %q\n", defaultArgs)
@@ -113,7 +122,7 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 		out, err := cmd.CombinedOutput()
 		log.Println(string(out))
 		elapsed := time.Since(start).Milliseconds()
-		output.Build = types.ExecutionDetails{
+		output.Build = &types.ExecutionDetails{
 			Status:   "success",
 			Duration: int(elapsed),
 		}
@@ -131,47 +140,101 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 
 	// Step 5: Running code
 	args := []string{"--rw", "-e", "--cwd", "/", "-c", baseDir}
-	if input.Run.Limits.MaxProcesses != 0 {
-		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(input.Build.Limits.MaxProcesses), 10))
+	if input.Run != nil && input.Run.Limits.MaxProcesses != 0 {
+		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(input.Run.Limits.MaxProcesses), 10))
+	} else if languageConfig.RuntimeOpts.ResourceLimits.MaxProcesses != 0 {
+		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(languageConfig.CompilationOpts.ResourceLimits.MaxProcesses), 10))
 	}
-	if input.Run.Limits.MemoryKB != 0 {
-		args = append(args, "--rlimit_as", strconv.FormatInt(input.Build.Limits.MemoryKB, 10))
+	if input.Run != nil && input.Run.Limits.MemoryKB != 0 {
+		args = append(args, "--rlimit_as", strconv.FormatInt(input.Run.Limits.MemoryKB, 10))
+	} else if languageConfig.CompilationOpts.ResourceLimits.MemoryKB != 0 {
+		args = append(args, "--rlimit_as", strconv.FormatInt(languageConfig.CompilationOpts.ResourceLimits.MemoryKB, 10))
 	}
-	if input.Run.Limits.WallTime != 0 {
-		args = append(args, "--time_limit", strconv.FormatInt(int64(input.Build.Limits.WallTime), 10))
+	if input.Run != nil && input.Run.Limits.WallTime != 0 {
+		args = append(args, "--time_limit", strconv.FormatInt(int64(input.Run.Limits.WallTime), 10))
+	} else if languageConfig.CompilationOpts.ResourceLimits.WallTime != 0 {
+		args = append(args, "--time_limit", strconv.FormatInt(int64(languageConfig.CompilationOpts.ResourceLimits.WallTime), 10))
 	}
 	args = append(args, strings.Fields(defaultArgs)...)
 	path := languageConfig.RuntimeOpts.Path
 	rtArgs := languageConfig.RuntimeOpts.Args
 	rtArgs = strings.ReplaceAll(rtArgs, "{{ FILENAME }}", filename)
+	binaryFilename := filename
+	if languageConfig.BinaryFileName != nil && *languageConfig.BinaryFileName != "TAKE_FROM_REQUEST" {
+		binaryFilename = *languageConfig.BinaryFileName
+	} else if input.ArtifaceFileName != nil {
+		binaryFilename = *input.ArtifaceFileName
+	}
+	rtArgs = strings.ReplaceAll(rtArgs, "{{ BINARY_FILENAME }}", binaryFilename)
 	args = append(args, path)
 	args = append(args, strings.Fields(rtArgs)...)
-	for _ = range input.Tests {
-		cmd := exec.Command("/usr/local/bin/nsjail", args...)
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		//TODO: Add input stream when required
-		start := time.Now()
-		out, err := cmd.Output()
-		elapsed := time.Since(start)
-		//TODO: Validate test outputs with expected outputs
-		testRes := types.TestOutput{ExecutionDetails: types.ExecutionDetails{
-			Status:   "success",
-			STDOut:   string(out),
-			Duration: int(elapsed.Milliseconds()),
-		}}
+	for i := range input.Tests {
+		testDir := fmt.Sprintf("test_%d", i)
+		ipFile := fmt.Sprintf("%s/%s/%s", baseDir, testDir, "input")
+
+		ipFileCont, err := os.ReadFile(ipFile)
 		if err != nil {
+			output.TestOutputs = append(output.TestOutputs, types.TestOutput{
+				ExecutionDetails: types.ExecutionDetails{
+					Status:   "error",
+					Duration: 0,
+				},
+			})
+		}
+
+		cgroupPath := fmt.Sprintf("/sys/fs/cgroup/goboxd/run_%s_%d", id, i)
+		cgroupCreated := os.Mkdir(cgroupPath, 0755) == nil
+
+		cmd := exec.Command("/usr/local/bin/nsjail", args...)
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		cmd.Stdin = bytes.NewBuffer(ipFileCont)
+
+		start := time.Now()
+		runErr := cmd.Start()
+		if cgroupCreated && cmd.Process != nil {
+			os.WriteFile(cgroupPath+"/cgroup.procs",
+				[]byte(strconv.Itoa(cmd.Process.Pid)), 0644)
+		}
+		if runErr == nil {
+			runErr = cmd.Wait()
+		}
+		elapsed := time.Since(start)
+		out := stdout.Bytes()
+
+		var memPeakKb int64
+		if cgroupCreated {
+			if raw, rerr := os.ReadFile(cgroupPath + "/memory.peak"); rerr == nil {
+				if b, _ := strconv.ParseInt(strings.TrimSpace(string(raw)), 10, 64); b > 0 {
+					memPeakKb = b / 1024
+				}
+			}
+			os.Remove(cgroupPath)
+		}
+
+		testRes := types.TestOutput{
+			ExecutionDetails: types.ExecutionDetails{
+				Status:   "success",
+				STDOut:   string(out),
+				Duration: int(elapsed.Milliseconds()),
+			},
+			MemoryPeakKb: memPeakKb,
+		}
+		if runErr != nil {
 			slog.Debug("nsjail failed",
 				"stderr", stderr.String(),
 				"args", cmd.Args,
 			)
 			testRes.Status = "errored"
 			testRes.STDErr = stderr.String()
+		} else if string(out) != input.Tests[i].ExpectedOut {
+			testRes.ExecutionDetails.Status = "wrong_output"
 		}
-
 		output.TestOutputs = append(output.TestOutputs, testRes)
 		log.Println(string(out))
 	}
+	os.RemoveAll(baseDir)
 	return &output, nil
 }
 

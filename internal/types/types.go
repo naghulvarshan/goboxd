@@ -47,9 +47,9 @@ type Tests struct {
 }
 
 type Response struct {
-	Status      string           `json:"status"`
-	Build       ExecutionDetails `json:"build"`
-	TestOutputs []TestOutput     `json:"test"`
+	Status      string            `json:"status"`
+	Build       *ExecutionDetails `json:"build,omitempty"`
+	TestOutputs []TestOutput      `json:"test"`
 }
 
 type ExecutionDetails struct {

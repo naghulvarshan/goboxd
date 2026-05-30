@@ -172,6 +172,7 @@ type LanguageSettings struct {
 	BinaryFileName  *string  `json:"binary_filename"`
 	CompilationOpts *Options `json:"compilation_options"`
 	RuntimeOpts     Options  `json:"runtime_options"`
+	VersionCmd      string   `json:"version_cmd"`
 }
 
 type Options struct {
@@ -184,4 +185,16 @@ type ResourceLimit struct {
 	TimeLimit    int `json:"time_limit"`
 	ProcessLimit int `json:"process_limit"`
 	MemLimit     int `json:"memory_limit"` // memory limit in kb
+}
+
+type ReadyzResponse struct {
+	Status    string                  `json:"status"`
+	Nsjail    SmokeTestRes            `json:"nsjail"`
+	Languages map[string]SmokeTestRes `json:"languages"`
+}
+
+type SmokeTestRes struct {
+	Ok      bool    `json:"ok"`
+	Version *string `json:"version,omitempty"`
+	Error   *string `json:"error,omitempty"`
 }

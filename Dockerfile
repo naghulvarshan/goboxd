@@ -41,7 +41,8 @@ RUN chmod +x /app/scripts/install.sh && /app/scripts/install.sh
 COPY --from=nsjail-builder /usr/local/bin/nsjail /usr/local/bin/nsjail
 COPY --from=builder        /out/goboxd          /usr/local/bin/goboxd
 COPY --from=builder        /out/config.yaml          /usr/local/bin/config.yaml
-
+ARG NSJAIL_VERSION
+ENV NSJAIL_VERSION=${NSJAIL_VERSION}
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/goboxd"]

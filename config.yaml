@@ -1,5 +1,5 @@
 ---
-nsjail_path: "{{ HOME }}/nsjail/nsjail"
+nsjail_path: "/usr/local/bin/nsjail"
 default_common_settings: 
   nsjail_args: "-B /bin -B /usr -B /lib -B /dev -B /etc -B /var -B /dev"
 language_settings:
@@ -19,6 +19,7 @@ language_settings:
         time_limit: 3
         process_limit: 0
         memory_limit: 1024
+    version_cmd: "/usr/bin/gcc --version"
   py:
     filename: "test.py"
     runtime_options:
@@ -28,6 +29,7 @@ language_settings:
         time_limit: 9
         process_limit: 100
         memory_limit: 102400
+    version_cmd: "/usr/local/bin/python2.7 --version"
   cpp:
     filename: "test.cpp"
     compilation_options:
@@ -44,6 +46,7 @@ language_settings:
         time_limit: 3
         process_limit: 0
         memory_limit: 1024
+    version_cmd: "/usr/bin/g++ --version"
   java:
     filename: "TAKE_FROM_REQUEST"
     binary_filename: "TAKE_FROM_REQUEST"
@@ -61,6 +64,7 @@ language_settings:
         time_limit: 6
         process_limit: 100
         memory_limit: 102400
+    version_cmd: "/usr/bin/javac --version"
   py3:
     filename: "test.py"
     runtime_options:
@@ -70,6 +74,7 @@ language_settings:
         time_limit: 9
         process_limit: 100
         memory_limit: 102400
+    version_cmd: "/usr/bin/python3 --version"
   bash:
     filename: "test.sh"
     runtime_options:
@@ -79,6 +84,7 @@ language_settings:
         time_limit: 9
         process_limit: 100
         memory_limit: 102400
+    version_cmd: "/bin/bash --version"
   javascript:
     filename: "test.js"
     runtime_options:
@@ -88,6 +94,7 @@ language_settings:
         time_limit: 9
         process_limit: 100
         memory_limit: 102400
+    version_cmd: "/usr/bin/node --version"
   verilog:
     filename: "test.v"
     compilation_options:
@@ -103,39 +110,42 @@ language_settings:
       resource_limits:
         time_limit: 9
         process_limit: 100
-        memory_limit: 102400  
-  haskell:
-    filename: "test.hs"
-    compilation_options:
-      path: "/usr/local/bin/stack"
-      args: "ghc -- {{ FILENAME }} -o a.out {{ EXTRA_ARGS }}"
-      resource_limits:
-        time_limit: 6
-        process_limit: 100
-        memory_limit: 102400
-    runtime_options:
-      path: "a.out"
-      args: ""
-      resource_limits:
-        time_limit: 9
-        process_limit: 100
-        memory_limit: 102400
-  zip:
-    filename: "test.zip.bs64"
-    compilation_options:
-      path: ""
-      args: ""
-      resource_limits:
-        time_limit: 6
-        process_limit: 100
-        memory_limit: 102400
-    runtime_options:
-      path: ""
-      args: ""
-      resource_limits:
-        time_limit: 9
-        process_limit: 100
-        memory_limit: 102400
+        memory_limit: 102400 
+    version_cmd: "/usr/bin/iverilog -V" 
+  # haskell:
+  #   filename: "test.hs"
+  #   compilation_options:
+  #     path: "/usr/local/bin/stack"
+  #     args: "ghc -- {{ FILENAME }} -o a.out {{ EXTRA_ARGS }}"
+  #     resource_limits:
+  #       time_limit: 6
+  #       process_limit: 100
+  #       memory_limit: 102400
+  #   runtime_options:
+  #     path: "a.out"
+  #     args: ""
+  #     resource_limits:
+  #       time_limit: 9
+  #       process_limit: 100
+  #       memory_limit: 102400
+  #   version_cmd: "/usr/local/bin/stack --version"
+  # zip:
+  #   filename: "test.zip.bs64"
+  #   compilation_options:
+  #     path: ""
+  #     args: ""
+  #     resource_limits:
+  #       time_limit: 6
+  #       process_limit: 100
+  #       memory_limit: 102400
+  #   runtime_options:
+  #     path: ""
+  #     args: ""
+  #     resource_limits:
+  #       time_limit: 9
+  #       process_limit: 100
+  #       memory_limit: 102400
+  #   version_cmd: "zip -v"
 
   
     

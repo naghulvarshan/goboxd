@@ -90,7 +90,7 @@ func generateWorkSpace() (string, string, error) {
 		return "", "", errors.New("internal server error")
 	}
 	home, _ := os.UserHomeDir()
-	baseDir := filepath.Join(home, "nsip_"+id)
+	baseDir := filepath.Join(home, "nsjail_programs", "nsip_"+id)
 	err = os.Mkdir(baseDir, 0755)
 	if err != nil {
 		if strings.Contains(err.Error(), "File exists") { // Retry once if a duplicate id is created

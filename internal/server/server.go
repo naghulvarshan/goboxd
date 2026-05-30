@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -103,8 +104,6 @@ func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		return
 	} else {
 		out, err := programs.Run(req, config.DefaultCommonSettings["nsjail_args"], langSettings)
-
-		log.Println(err)
 		if err != nil {
 			errorResp(err, w)
 			return
@@ -126,6 +125,7 @@ func Serve(port string, cfg *types.Config) {
 	router.GET("/healthz", healthz)
 	router.GET("/readyz", readyz)
 	router.POST("/run", runProgram)
+	go junkCleaner(context.TODO())
 	slog.Info("Started server", "port", port, "address", "http://localhost")
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }

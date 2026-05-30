@@ -33,6 +33,9 @@ func main() {
 	if err := InitCgroupBase(); err != nil {
 		slog.Warn("cgroup memory tracking disabled", "error", err)
 	}
+
+	home, _ := os.UserHomeDir()
+	os.Mkdir(home+"/nsjail_programs", 0755)
 	slog.Debug("config", "config content", string(out))
 	server.Serve(port, cf)
 }

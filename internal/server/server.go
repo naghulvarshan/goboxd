@@ -41,6 +41,8 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		},
 		Languages: make(map[string]types.SmokeTestRes),
 	}
+	var errored bool
+	// Run version cmd for each language supported
 	for i := range config.LanguageSettings {
 		args := strings.Fields(config.LanguageSettings[i].VersionCmd)
 		if len(args) == 0 {
@@ -53,6 +55,7 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		out, err := exec.Command(args[0], args[1:]...).CombinedOutput()
 		var langRes types.SmokeTestRes
 		if err != nil {
+			errored = true
 			errStr := err.Error()
 			langRes = types.SmokeTestRes{
 				Ok:    false,
@@ -69,8 +72,13 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		}
 		readyzRes.Languages[config.LanguageSettings[i].Id] = langRes
 	}
+	returnStatus := http.StatusOK
+	if errored {
+		returnStatus = http.StatusServiceUnavailable
+		readyzRes.Status = "degraded"
+	}
 	res, _ := json.Marshal(readyzRes)
-	writeResponse(string(res), w, http.StatusOK)
+	writeResponse(string(res), w, returnStatus)
 }
 
 func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {

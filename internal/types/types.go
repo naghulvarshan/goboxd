@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -18,6 +19,7 @@ const (
 	DisallowedFlageErrCode   = "disallowed_flag"
 	TakeFromRequest          = "TAKE_FROM_REQUEST"
 	SourceMaxLimit           = 256 * 1025 // Restricting maximum size of source file
+	MaxTestCases             = 50
 )
 
 type ProgramInfo struct {
@@ -109,6 +111,15 @@ func UnmarshallRequest(body []byte) (*ProgramInfo, error) {
 			ErrorDetails: ErrorDetails{
 				Code:    InvalidFieldErrCode,
 				Message: "at least one test case is required",
+			},
+		}
+	}
+	if len(req.Tests) > MaxTestCases {
+		return nil, PreBuildError{
+			ErrorDetails: ErrorDetails{
+				Code: InvalidFieldErrCode,
+				Message: "the maximum number of test case can only be " +
+					strconv.FormatInt(int64(MaxTestCases), 10),
 			},
 		}
 	}

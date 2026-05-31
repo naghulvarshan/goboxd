@@ -162,29 +162,31 @@ func UnmarshallRequest(body []byte) (*ProgramInfo, error) {
 }
 
 type Config struct {
-	NsjailPath            string                      `json:"nsjail_path"`
-	DefaultCommonSettings map[string]string           `json:"default_common_settings"`
-	LanguageSettings      map[string]LanguageSettings `json:"language_settings"`
+	NsjailPath            string             `json:"nsjail_path"`
+	DefaultCommonSettings map[string]string  `json:"default_common_settings"`
+	LanguageSettings      []LanguageSettings `json:"languages"`
 }
 
 type LanguageSettings struct {
-	FileName        string   `json:"filename"`
-	BinaryFileName  *string  `json:"binary_filename"`
-	CompilationOpts *Options `json:"compilation_options"`
-	RuntimeOpts     Options  `json:"runtime_options"`
-	VersionCmd      string   `json:"version_cmd"`
+	Id             string   `json:"id"`
+	Name           string   `json:"name"`
+	Source         string   `json:"filename"`
+	BinaryFileName *string  `json:"artifact"`
+	BuildOpts      *Options `json:"build"`
+	RunOpts        Options  `json:"run"`
+	VersionCmd     string   `json:"version_cmd"`
 }
 
 type Options struct {
-	Path           string `json:"path"`
-	Args           string `json:"args"`
-	ResourceLimits Limits `json:"resource_limits"`
+	Cmd            string   `json:"cmd"`
+	Args           []string `json:"args,omitempty"`
+	ResourceLimits Limits   `json:"limits"`
 }
 
 type ResourceLimit struct {
-	TimeLimit    int `json:"time_limit"`
-	ProcessLimit int `json:"process_limit"`
-	MemLimit     int `json:"memory_limit"` // memory limit in kb
+	WalltTime_S int `json:"wall_time_s"`
+	MaxProc     int `json:"max_processes"`
+	MemLimit    int `json:"memory_kb"`
 }
 
 type ReadyzResponse struct {

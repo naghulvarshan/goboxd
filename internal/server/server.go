@@ -19,7 +19,7 @@ import (
 
 var config *types.Config
 
-var readyzApiResponse string
+var langMap map[string]types.LanguageSettings
 
 func writeResponse(resp string, w http.ResponseWriter, status int) {
 	w.WriteHeader(status)
@@ -33,10 +33,6 @@ func healthz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	slog.Info("API Report", "path", "/readyz", "method", "GET")
-	if readyzApiResponse != "" {
-		writeResponse(readyzApiResponse, w, http.StatusOK)
-		return
-	}
 	readyzRes := types.ReadyzResponse{
 		Status: "success",
 		Nsjail: types.SmokeTestRes{
@@ -48,7 +44,7 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	for i := range config.LanguageSettings {
 		args := strings.Fields(config.LanguageSettings[i].VersionCmd)
 		if len(args) == 0 {
-			readyzRes.Languages[i] = types.SmokeTestRes{
+			readyzRes.Languages[config.LanguageSettings[i].Id] = types.SmokeTestRes{
 				Ok:    false,
 				Error: &[]string{"version command not configured"}[0],
 			}
@@ -62,7 +58,7 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 				Ok:    false,
 				Error: &errStr,
 			}
-			readyzRes.Languages[i] = langRes
+			readyzRes.Languages[config.LanguageSettings[i].Id] = langRes
 			continue
 		}
 		v := string(out)
@@ -71,11 +67,10 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 			Ok:      true,
 			Version: &v,
 		}
-		readyzRes.Languages[i] = langRes
+		readyzRes.Languages[config.LanguageSettings[i].Id] = langRes
 	}
 	res, _ := json.Marshal(readyzRes)
-	readyzApiResponse = string(res)
-	writeResponse(readyzApiResponse, w, http.StatusOK)
+	writeResponse(string(res), w, http.StatusOK)
 }
 
 func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -94,7 +89,7 @@ func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		errorResp(InternalServerError{errors.New("internal server error")}, w)
 		return
 	}
-	if langSettings, ok := config.LanguageSettings[req.Language]; !ok {
+	if langSettings, ok := langMap[req.Language]; !ok {
 		errorResp(InvalidInputError{types.PreBuildError{
 			ErrorDetails: types.ErrorDetails{
 				Code:    types.UnkownLanugageErrCode,
@@ -126,6 +121,14 @@ func Serve(port string, cfg *types.Config) {
 	router.GET("/readyz", readyz)
 	router.POST("/run", runProgram)
 	go junkCleaner(context.TODO())
+	langMap = make(map[string]types.LanguageSettings)
+	for i := range cfg.LanguageSettings {
+		id := cfg.LanguageSettings[i].Id
+		if _, ok := langMap[id]; ok {
+			slog.Error("duplicate language def in config", "langugae", id)
+		}
+		langMap[cfg.LanguageSettings[i].Id] = cfg.LanguageSettings[i]
+	}
 	slog.Info("Started server", "port", port, "address", "http://localhost")
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }

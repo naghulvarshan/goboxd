@@ -27,7 +27,7 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 	}
 
 	// Step 2: Write the program to a file
-	filename := languageConfig.FileName
+	filename := languageConfig.Source
 	if input.SourceFileName != nil {
 		filename = *input.SourceFileName
 	}
@@ -45,7 +45,7 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 		Status:      "success",
 		TestOutputs: []types.TestOutput{},
 	}
-	if languageConfig.CompilationOpts != nil {
+	if languageConfig.BuildOpts != nil {
 		binary := languageConfig.BinaryFileName
 		if binary == nil {
 			binary = input.ArtifaceFileName
@@ -54,7 +54,7 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 			return nil, errors.New("binary artifact name is required")
 		}
 		compileCode(baseDir, *binary, filename, input.Build,
-			languageConfig.CompilationOpts, output, defaultArgs)
+			languageConfig.BuildOpts, output, defaultArgs)
 	}
 
 	// Step 5: Running code
@@ -64,7 +64,7 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 	} else if input.ArtifaceFileName != nil {
 		binaryFilename = *input.ArtifaceFileName
 	}
-	output.TestOutputs = runCode(baseDir, id, defaultArgs, binaryFilename, input.Run, languageConfig.RuntimeOpts,
+	output.TestOutputs = runCode(baseDir, id, defaultArgs, binaryFilename, input.Run, languageConfig.RunOpts,
 		input.Tests)
 	os.RemoveAll(baseDir)
 	return output, nil
@@ -167,11 +167,11 @@ func compileCode(baseDir, binaryName, filename string,
 	fmt.Printf("after split: %q\n", strings.Fields(defaultArgs))
 	args = append(args, "--symlink", "/lib:/lib64") // To be removed
 
-	compilation := languageCompilationOpts.Args
-	compilation = strings.ReplaceAll(compilation, "{{ EXTRA_ARGS }}",
+	compilation := strings.Join(languageCompilationOpts.Args, " ")
+	compilation = strings.ReplaceAll(compilation, "{{flags}}",
 		strings.Join(ipBuildOpts.Flags, " "))
-	compilation = strings.ReplaceAll(compilation, "{{ FILENAME }}", filename)
-	args = append(args, "--", languageCompilationOpts.Path)
+	compilation = strings.ReplaceAll(compilation, "{{source}}", filename)
+	args = append(args, "--", languageCompilationOpts.Cmd)
 	args = append(args, strings.Fields(compilation)...)
 	fmt.Printf("full args: %q\n", args)
 	cmd := exec.Command("/usr/local/bin/nsjail", args...)
@@ -217,10 +217,10 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *types.LimitsA
 		args = append(args, "--time_limit", strconv.FormatInt(int64(langOpts.ResourceLimits.WallTime), 10))
 	}
 	args = append(args, strings.Fields(defaultArgs)...)
-	path := langOpts.Path
-	rtArgs := langOpts.Args
-	rtArgs = strings.ReplaceAll(rtArgs, "{{ FILENAME }}", filename)
-	rtArgs = strings.ReplaceAll(rtArgs, "{{ BINARY_FILENAME }}", filename)
+	path := langOpts.Cmd
+	rtArgs := strings.Join(langOpts.Args, " ")
+	rtArgs = strings.ReplaceAll(rtArgs, "{{source}}", filename)
+	rtArgs = strings.ReplaceAll(rtArgs, "{{artifact}}", filename)
 	args = append(args, path)
 	args = append(args, strings.Fields(rtArgs)...)
 	for i := range tests {

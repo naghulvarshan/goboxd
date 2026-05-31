@@ -26,6 +26,8 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 		return nil, err
 	}
 
+	defer os.RemoveAll(baseDir) // Cleanup workspace after testing
+
 	// Step 2: Write the program to a file
 	filename := languageConfig.Source
 	if input.SourceFileName != nil {
@@ -66,7 +68,6 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 	}
 	output.TestOutputs = runCode(baseDir, id, defaultArgs, binaryFilename, input.Run, languageConfig.RunOpts,
 		input.Tests)
-	os.RemoveAll(baseDir)
 	return output, nil
 }
 

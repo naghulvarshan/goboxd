@@ -16,7 +16,7 @@ var cfgPath = "/usr/local/bin/config.yaml"
 func main() {
 	var port string
 	// TODO: Replace with ENV based log level
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	})))
 

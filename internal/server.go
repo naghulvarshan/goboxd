@@ -3,9 +3,11 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"log/slog"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -26,18 +28,46 @@ var jobsTotal, jobsFailedWithIntSvrErr atomic.Int64
 var lastInternalErr *time.Time
 var mu sync.RWMutex
 
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (r *statusRecorder) WriteHeader(code int) {
+	r.status = code
+	r.ResponseWriter.WriteHeader(code)
+}
+
+func newRequestID() string {
+	return fmt.Sprintf("%08x", rand.Uint32())
+}
+
+func logMiddleware(next httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		start := time.Now()
+		reqID := newRequestID()
+		next(rec, r, p)
+		slog.Info("api request",
+			"request_id", reqID,
+			"method", r.Method,
+			"path", r.URL.Path,
+			"status", rec.status,
+			"duration_ms", time.Since(start).Milliseconds(),
+		)
+	}
+}
+
 func writeResponse(resp string, w http.ResponseWriter, status int) {
 	w.WriteHeader(status)
 	w.Write([]byte(resp))
 }
 
 func healthz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	slog.Info("API Report", "path", "/healthz", "method", "GET")
 	writeResponse(`{"status":"ok"}`, w, http.StatusOK)
 }
 
 func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	slog.Info("API Report", "path", "/readyz", "method", "GET")
 	readyzRes := ReadyzResponse{
 		Status: "success",
 		Nsjail: SmokeTestRes{
@@ -94,7 +124,6 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 }
 
 func info(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	slog.Info("API Report", "path", "/info", "method", "GET")
 	resp := InfoResp{
 		BuildInfo: map[string]string{
 			"version":    config.Version,
@@ -132,7 +161,6 @@ func info(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 }
 
 func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	slog.Info("API Report", "path", "/run", "method", "POST")
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		errorResp(InvalidInputError{Message: err.Error()}, w)
@@ -196,10 +224,10 @@ func configureRouter() *httprouter.Router {
 func Serve(port string, cfg *Config) {
 	config = cfg
 	router := configureRouter()
-	router.GET("/healthz", healthz)
-	router.GET("/readyz", readyz)
-	router.POST("/run", runProgram)
-	router.GET("/info", info)
+	router.GET("/healthz", logMiddleware(healthz))
+	router.GET("/readyz", logMiddleware(readyz))
+	router.POST("/run", logMiddleware(runProgram))
+	router.GET("/info", logMiddleware(info))
 	go junkCleaner(context.TODO())
 	langMap = make(map[string]LanguageSettings)
 	for i := range cfg.LanguageSettings {

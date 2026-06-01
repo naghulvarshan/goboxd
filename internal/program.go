@@ -225,12 +225,6 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 		args = append(args, "--time_limit", strconv.FormatInt(int64(langOpts.ResourceLimits.WallTime), 10))
 	}
 	args = append(args, strings.Fields(defaultArgs)...)
-	path := langOpts.Cmd
-	rtArgs := strings.Join(langOpts.Args, " ")
-	rtArgs = strings.ReplaceAll(rtArgs, "{{source}}", filename)
-	rtArgs = strings.ReplaceAll(rtArgs, "{{artifact}}", filename)
-	args = append(args, path)
-	args = append(args, strings.Fields(rtArgs)...)
 
 	effectiveMemKB := langOpts.ResourceLimits.MemoryKB
 	if inputPref != nil && inputPref.Limits.MemoryKB != 0 {
@@ -239,6 +233,13 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 	if effectiveMemKB > 0 {
 		args = append(args, "--rlimit_as", strconv.FormatInt(effectiveMemKB/1024, 10))
 	}
+
+	path := langOpts.Cmd
+	rtArgs := strings.Join(langOpts.Args, " ")
+	rtArgs = strings.ReplaceAll(rtArgs, "{{source}}", filename)
+	rtArgs = strings.ReplaceAll(rtArgs, "{{artifact}}", filename)
+	args = append(args, path)
+	args = append(args, strings.Fields(rtArgs)...)
 
 	for i := range tests {
 		testDir := fmt.Sprintf("test_%d", i)

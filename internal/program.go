@@ -67,16 +67,22 @@ func Run(input *ProgramInfo, defaultArgs string, languageConfig LanguageSettings
 		if binary == nil {
 			return nil, errors.New("binary artifact name is required")
 		}
-		compileCode(baseDir, *binary, filename, input.Build,
+		err := compileCode(baseDir, *binary, filename, input.Build,
 			languageConfig.BuildOpts, output, defaultArgs)
+		if err != nil {
+			return output, nil
+		}
+		filename = *binary
 	}
 
 	// Step 5: Running code
 	binaryFilename := filename
-	if languageConfig.BinaryFileName != nil && *languageConfig.BinaryFileName != "TAKE_FROM_REQUEST" {
-		binaryFilename = *languageConfig.BinaryFileName
-	} else if input.ArtifaceFileName != nil {
-		binaryFilename = *input.ArtifaceFileName
+	if languageConfig.BuildOpts != nil {
+		if languageConfig.BinaryFileName != nil && *languageConfig.BinaryFileName != "TAKE_FROM_REQUEST" {
+			binaryFilename = *languageConfig.BinaryFileName
+		} else if input.ArtifaceFileName != nil {
+			binaryFilename = *input.ArtifaceFileName
+		}
 	}
 	output.TestOutputs = runCode(baseDir, id, defaultArgs, binaryFilename, input.Run, languageConfig.RunOpts,
 		input.Tests)

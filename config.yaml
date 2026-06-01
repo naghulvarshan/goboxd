@@ -144,7 +144,7 @@ languages:
         wall_time_s: 9
         max_processes: 100
         memory_kb: 102400
-    version_cmd: "zip -v"
+    version_cmd: "unzip -v"
 
   
     

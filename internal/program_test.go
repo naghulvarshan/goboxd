@@ -40,7 +40,9 @@ func TestIdGeneratorUniqueness(t *testing.T) {
 
 func TestGenerateWorkSpace(t *testing.T) {
 	home, _ := os.UserHomeDir()
-	os.MkdirAll(filepath.Join(home, "nsjail_programs"), 0755)
+	if err := os.MkdirAll(filepath.Join(home, "nsjail_programs"), 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	baseDir, id, err := generateWorkSpace()
 	if err != nil {
@@ -64,7 +66,9 @@ func TestGenerateWorkSpace(t *testing.T) {
 
 func TestGenerateWorkSpaceUnique(t *testing.T) {
 	home, _ := os.UserHomeDir()
-	os.MkdirAll(filepath.Join(home, "nsjail_programs"), 0755)
+	if err := os.MkdirAll(filepath.Join(home, "nsjail_programs"), 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	dir1, id1, err := generateWorkSpace()
 	if err != nil {
@@ -115,8 +119,12 @@ func TestAddSourceError(t *testing.T) {
 
 func TestAddSourceOverwrites(t *testing.T) {
 	dir := t.TempDir()
-	addSource("file.py", dir, "original")
-	addSource("file.py", dir, "updated")
+	if err := addSource("file.py", dir, "original"); err != nil {
+		t.Fatal(err)
+	}
+	if err := addSource("file.py", dir, "updated"); err != nil {
+		t.Fatal(err)
+	}
 
 	got, _ := os.ReadFile(filepath.Join(dir, "file.py"))
 	if string(got) != "updated" {

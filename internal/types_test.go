@@ -6,8 +6,6 @@ import (
 	"testing"
 )
 
-func ptr(s string) *string { return &s }
-
 func validBody(overrides map[string]any) []byte {
 	base := map[string]any{
 		"language": "py3",

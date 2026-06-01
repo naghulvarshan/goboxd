@@ -10,12 +10,18 @@ import (
 func TestCleanupRemovesStaleDirectories(t *testing.T) {
 	home, _ := os.UserHomeDir()
 	nsjailDir := home + "/nsjail_programs"
-	os.MkdirAll(nsjailDir, 0755)
+	if err := os.MkdirAll(nsjailDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	staleDir := filepath.Join(nsjailDir, "nsip_stale_test_cleanup")
-	os.Mkdir(staleDir, 0755)
+	if err := os.Mkdir(staleDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 	past := time.Now().Add(-2 * time.Minute)
-	os.Chtimes(staleDir, past, past)
+	if err := os.Chtimes(staleDir, past, past); err != nil {
+		t.Fatal(err)
+	}
 	t.Cleanup(func() { os.RemoveAll(staleDir) })
 
 	if err := cleanup(); err != nil {
@@ -30,10 +36,14 @@ func TestCleanupRemovesStaleDirectories(t *testing.T) {
 func TestCleanupKeepsFreshDirectories(t *testing.T) {
 	home, _ := os.UserHomeDir()
 	nsjailDir := home + "/nsjail_programs"
-	os.MkdirAll(nsjailDir, 0755)
+	if err := os.MkdirAll(nsjailDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	freshDir := filepath.Join(nsjailDir, "nsip_fresh_test_cleanup")
-	os.Mkdir(freshDir, 0755)
+	if err := os.Mkdir(freshDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 	t.Cleanup(func() { os.RemoveAll(freshDir) })
 
 	if err := cleanup(); err != nil {

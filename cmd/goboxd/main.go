@@ -34,7 +34,10 @@ func main() {
 	}
 
 	home, _ := os.UserHomeDir()
-	os.Mkdir(home+"/nsjail_programs", 0755)
+	err = os.Mkdir(home+"/nsjail_programs", 0755)
+	if err != nil {
+		log.Fatal("cannot create base dir for nsjail programs")
+	}
 	slog.Debug("config", "config content", string(out))
 	server.Serve(port, cf)
 }

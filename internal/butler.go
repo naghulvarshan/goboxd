@@ -14,7 +14,9 @@ func junkCleaner(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			cleanup()
+			if err := cleanup(); err != nil {
+				slog.Warn("cleanup error", "error", err)
+			}
 		case <-ctx.Done():
 			return
 		}

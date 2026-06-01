@@ -27,5 +27,5 @@ func errorResp(err error, w http.ResponseWriter) {
 		statusCode = http.StatusBadRequest
 	}
 	w.WriteHeader(statusCode)
-	w.Write([]byte(err.Error()))
+	_, _ = w.Write([]byte(err.Error()))
 }

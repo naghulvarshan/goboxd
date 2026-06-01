@@ -177,7 +177,7 @@ func postRun(t *testing.T, req apiRequest) runResponse {
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		var raw map[string]any
-		json.NewDecoder(resp.Body).Decode(&raw)
+		_ = json.NewDecoder(resp.Body).Decode(&raw)
 		t.Fatalf("expected 200, got %d: %v", resp.StatusCode, raw)
 	}
 	var result runResponse

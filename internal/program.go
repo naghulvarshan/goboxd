@@ -127,8 +127,8 @@ func generateWorkSpace() (string, string, error) {
 
 		}
 	}
-	os.Mkdir(baseDir+"/proc", 0755)
-	os.Mkdir(baseDir+"/tmp", 0755)
+	_ = os.Mkdir(baseDir+"/proc", 0755)
+	_ = os.Mkdir(baseDir+"/tmp", 0755)
 	return baseDir, id, nil
 }
 
@@ -261,7 +261,7 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 		cgroupPath := fmt.Sprintf("/sys/fs/cgroup/goboxd/run_%s_%d", id, i)
 		cgroupCreated := os.Mkdir(cgroupPath, 0755) == nil
 		if cgroupCreated && effectiveMemKB > 0 {
-			os.WriteFile(cgroupPath+"/memory.max",
+			_ = os.WriteFile(cgroupPath+"/memory.max",
 				[]byte(strconv.FormatInt(effectiveMemKB*1024, 10)), 0644)
 		}
 
@@ -274,7 +274,7 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 		start := time.Now()
 		runErr := cmd.Start()
 		if cgroupCreated && cmd.Process != nil {
-			os.WriteFile(cgroupPath+"/cgroup.procs",
+			_ = os.WriteFile(cgroupPath+"/cgroup.procs",
 				[]byte(strconv.Itoa(cmd.Process.Pid)), 0644)
 		}
 		if runErr == nil {

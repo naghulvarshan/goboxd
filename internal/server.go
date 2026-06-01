@@ -60,7 +60,7 @@ func logMiddleware(next httprouter.Handle) httprouter.Handle {
 
 func writeResponse(resp string, w http.ResponseWriter, status int) {
 	w.WriteHeader(status)
-	w.Write([]byte(resp))
+	_, _ = w.Write([]byte(resp))
 }
 
 func healthz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {

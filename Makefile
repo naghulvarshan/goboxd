@@ -13,11 +13,10 @@ run:
 test:
 	$(TOOLS) go test ./...
 
-integration:
-	$(TOOLS) go test -tags=integration ./tests/... -timeout 300s
-
 run-integration:
-	@cd tests && GOBOXD_URL=$(GOBOXD_URL) go test -tags=integration -count=1 -v $(if $(TEST_FLAG),-run TestIntegration/$(TEST_FLAG)) -timeout 300s .
+	$(COMPOSE) up -d goboxd
+	$(COMPOSE) --profile tools run --rm -e GOBOXD_URL=http://goboxd:8080 tools go test -tags=integration ./tests/... -v $(if $(TEST_FLAG),-run TestIntegration/$(TEST_FLAG)) -timeout 300s
+	$(COMPOSE) stop goboxd
 
 lint:
 	$(TOOLS) golangci-lint run ./...

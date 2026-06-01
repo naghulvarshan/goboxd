@@ -15,51 +15,108 @@
 
 ## Overview
 
-goboxd is an HTTP service written in Go that compiles and runs untrusted code inside isolated sandboxes and returns the result. Optional test cases can be supplied to assert behaviour against expected output. It is built for safe execution of code across many languages, with strict isolation, bounded concurrency, and a plug and play language registry.
+goboxd is an HTTP service written in Go that compiles and runs untrusted code inside isolated sandboxes and returns the result. Supply test cases to assert behaviour against expected output, or provide a custom evaluator script for flexible grading. It is built for safe execution of code across many languages, with strict resource isolation and a YAML-driven language registry.
 
 ## Features
 
-- Plug and play language registry driven by YAML
-- Process isolation using Linux namespaces and cgroups
-- Bounded concurrency with request queuing
-- Fully containerised for local development and deployment
-- Per request resource limits for time, memory, and processes
-- Liveness and readiness probes for orchestration
+- YAML-driven language registry — add a language without touching Go code
+- Process isolation via Linux namespaces (nsjail) and cgroup v2 memory enforcement
+- Per-request limits for wall-clock time, virtual memory, and process count
+- Evaluator script support for custom output grading (e.g. checker scripts)
+- Stale workspace cleanup via a background butler goroutine
+- Liveness (`/healthz`) and readiness (`/readyz`) probes
+- Build info and runtime stats exposed at `/info`
 
-## Getting started
-
-### Prerequisites
-
-- Docker with Compose v2
-
-No Go toolchain or system dependencies are required on the host. Everything runs in containers.
-
-### Installation
+## Quick start
 
 ```sh
 git clone https://github.com/thesouldev/goboxd.git
 cd goboxd
-make build
+make build        # build Docker image
+make run          # start the service on :8080
 ```
 
-### Usage
+See [docs/getting-started.md](docs/getting-started.md) for the full walkthrough including example API calls.
+
+## API
+
+| Method | Path      | Description                                 |
+|--------|-----------|---------------------------------------------|
+| `POST` | `/run`    | Compile and run code, return test results   |
+| `GET`  | `/healthz`| Liveness probe — returns `{"status":"ok"}`  |
+| `GET`  | `/readyz` | Readiness probe — runs version checks per language |
+| `GET`  | `/info`   | Build info, language list, and runtime stats |
+
+### Minimal request
+
+```json
+{
+  "language": "py3",
+  "source": "print('hello')",
+  "tests": [
+    { "stdin": "", "expected_stdout": "hello\n" }
+  ]
+}
+```
 
 ```sh
-make run          # start the service on :8080
-make test         # run unit tests
-make integration  # run end to end tests
-make lint         # run static analysis
+curl -s -X POST http://localhost:8080/run \
+  -H "Content-Type: application/json" \
+  -d '{"language":"py3","source":"print(\"hello\")","tests":[{"stdin":"","expected_stdout":"hello\n"}]}'
 ```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "build": { "status": "NOT_RUN" },
+  "test": [
+    { "status": "accepted", "stdout": "hello\n", "stderr": "", "duration_ms": 42, "memory_peak_kb": 0 }
+  ]
+}
+```
+
+Test status values: `accepted`, `wrong_output`, `time_exceeded`, `memory_exceeded`, `errored`.
+
+## Make targets
+
+| Target            | Description                                  |
+|-------------------|----------------------------------------------|
+| `make build`      | Build the Docker image                       |
+| `make run`        | Start the service on `:8080`                 |
+| `make test`       | Run unit tests inside the tools container    |
+| `make run-integration` | Run integration tests against a live server |
+| `make lint`       | Run `golangci-lint`                          |
 
 ## Project structure
 
 ```
 .
-├── cmd/goboxd/   binary entry point
-├── internal/     private application packages
-├── docs/         api, languages, security, benchmarks, architecture
-└── tests/        integration tests
+├── cmd/goboxd/        binary entry point
+├── internal/          HTTP handlers, run logic, types, cleanup
+├── docs/              architecture and getting-started guides
+├── tests/             integration tests and YAML test cases
+├── scripts/           language install scripts run at image build time
+└── config.yaml        language registry
 ```
+
+## Supported languages
+
+| ID           | Language      |
+|--------------|---------------|
+| `c`          | C (GCC)       |
+| `cpp`        | C++ (G++)     |
+| `py`         | Python 2.7    |
+| `py3`        | Python 3      |
+| `bash`       | Bash          |
+
+Additional languages can be added by editing `config.yaml` and running `scripts/lang_install/<lang>.sh` in the Dockerfile. See [docs/architecture.md](docs/architecture.md#adding-a-language).
+
+## Docs
+
+- [Getting started](docs/getting-started.md) — installation, example requests, troubleshooting
+- [Architecture](docs/architecture.md) — design, request lifecycle, sandboxing model
 
 ## Contributing
 

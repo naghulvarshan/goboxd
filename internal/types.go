@@ -21,6 +21,7 @@ const (
 	SourceMaxLimit           = 256 * 1025 // Restricting maximum size of source file
 	MaxTestCases             = 50
 	MaxJobs                  = 10 // TODO: implement this
+	MaxOutputBytes           = 5 * 1024 * 1024
 )
 
 type Status string

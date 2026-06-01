@@ -266,9 +266,12 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 		}
 
 		cmd := exec.Command("/usr/local/bin/nsjail", args...)
-		var stdout, stderr bytes.Buffer
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
+
+		stdoutBuf := NewBoundedBuffer(MaxOutputBytes)
+		stderrBuf := NewBoundedBuffer(MaxOutputBytes)
+
+		cmd.Stdout = stdoutBuf
+		cmd.Stderr = stderrBuf
 		cmd.Stdin = bytes.NewBuffer(ipFileCont)
 
 		start := time.Now()
@@ -281,7 +284,7 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 			runErr = cmd.Wait()
 		}
 		elapsed := time.Since(start)
-		out := stdout.Bytes()
+		out := stdoutBuf.Bytes()
 
 		var memPeakKb int64
 		if cgroupCreated {
@@ -302,7 +305,7 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 			MemoryPeakKb: memPeakKb,
 		}
 		if runErr != nil {
-			stderrStr := stderr.String()
+			stderrStr := stderrBuf.String()
 			slog.Debug("nsjail failed", "stderr", stderrStr, "args", cmd.Args)
 			switch {
 			case strings.Contains(stderrStr, "run time >= time limit"):
@@ -352,4 +355,50 @@ func runEvaluationScript(baseDir, defaultArgs, sourceFilename, evalScriptLang st
 	}
 	result := stdout.String()
 	return &result
+}
+
+// BoundedBuffer wraps a bytes.Buffer to enforce a maximum capacity
+// and appends a truncation message if the limit is breached.
+type BoundedBuffer struct {
+	buf       bytes.Buffer
+	limit     int
+	truncated bool
+}
+
+func NewBoundedBuffer(limit int) *BoundedBuffer {
+	return &BoundedBuffer{limit: limit}
+}
+
+func (b *BoundedBuffer) Write(p []byte) (n int, err error) {
+	if b.truncated {
+		// Already hit the limit; discard further input silently
+		return len(p), nil
+	}
+
+	remaining := b.limit - b.buf.Len()
+	if remaining <= 0 {
+		b.markTruncated()
+		return len(p), nil
+	}
+
+	if len(p) > remaining {
+		n, _ = b.buf.Write(p[:remaining])
+		b.markTruncated()
+		return len(p), nil // Return len(p) so the caller thinks it succeeded
+	}
+
+	return b.buf.Write(p)
+}
+
+func (b *BoundedBuffer) markTruncated() {
+	b.truncated = true
+	b.buf.WriteString("\n--- [OUTPUT TRUNCATED DUE TO SIZE LIMIT] ---")
+}
+
+func (b *BoundedBuffer) Bytes() []byte {
+	return b.buf.Bytes()
+}
+
+func (b *BoundedBuffer) String() string {
+	return b.buf.String()
 }

@@ -20,6 +20,7 @@ const (
 	TakeFromRequest          = "TAKE_FROM_REQUEST"
 	SourceMaxLimit           = 256 * 1025 // Restricting maximum size of source file
 	MaxTestCases             = 50
+	MaxJobs                  = 10 // TODO: implement this
 )
 
 type ProgramInfo struct {
@@ -184,6 +185,7 @@ func UnmarshallRequest(body []byte) (*ProgramInfo, error) {
 }
 
 type Config struct {
+	Version               string             `json:"version"`
 	NsjailPath            string             `json:"nsjail_path"`
 	DefaultCommonSettings map[string]string  `json:"default_common_settings"`
 	LanguageSettings      []LanguageSettings `json:"languages"`
@@ -192,11 +194,11 @@ type Config struct {
 type LanguageSettings struct {
 	Id             string   `json:"id"`
 	Name           string   `json:"name"`
-	Source         string   `json:"filename"`
-	BinaryFileName *string  `json:"artifact"`
-	BuildOpts      *Options `json:"build"`
+	Source         string   `json:"source"`
+	BinaryFileName *string  `json:"artifact,omitempty"`
+	BuildOpts      *Options `json:"build,omitempty"`
 	RunOpts        Options  `json:"run"`
-	VersionCmd     string   `json:"version_cmd"`
+	VersionCmd     *string  `json:"version_cmd,omitempty"`
 }
 
 type Options struct {
@@ -221,4 +223,13 @@ type SmokeTestRes struct {
 	Ok      bool    `json:"ok"`
 	Version *string `json:"version,omitempty"`
 	Error   *string `json:"error,omitempty"`
+}
+
+// TODO: Make all fields proper struct with def
+type InfoResp struct {
+	BuildInfo map[string]string      `json:"build_info"`
+	Nsjail    map[string]string      `json:"nsjail"`
+	Languages []json.RawMessage      `json:"lanugages"`
+	Limits    map[string]interface{} `json:"limits"`
+	Stats     map[string]interface{} `json:"stats"`
 }

@@ -1,4 +1,5 @@
 ---
+version: "0.1.0"
 nsjail_path: "/usr/local/bin/nsjail"
 default_common_settings: 
   nsjail_args: "-B /bin -B /usr -B /lib -B /dev -B /etc -B /var -B /dev"
@@ -68,6 +69,7 @@ languages:
   #   version_cmd: "/usr/bin/javac --version"
   - id: py3
     source: "test.py"
+    name: "Python 3"
     run:
       cmd: "/usr/bin/python3"
       args: ["{{source}}"]

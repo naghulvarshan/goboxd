@@ -3,6 +3,7 @@
 ARG GO_VERSION=1.23
 ARG DEBIAN_VERSION=bookworm
 ARG NSJAIL_VERSION=3.4
+ARG GIT_COMMIT
 
 # ---- Build nsjail from source ----
 FROM debian:${DEBIAN_VERSION}-slim AS nsjail-builder
@@ -43,6 +44,10 @@ COPY --from=builder        /out/goboxd          /usr/local/bin/goboxd
 COPY --from=builder        /out/config.yaml          /usr/local/bin/config.yaml
 ARG NSJAIL_VERSION
 ENV NSJAIL_VERSION=${NSJAIL_VERSION}
+ARG GO_VERSION
+ENV GO_VERSION=${GO_VERSION}
+ARG GIT_COMMIT
+ENV GIT_COMMIT=${GIT_COMMIT}
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/goboxd"]

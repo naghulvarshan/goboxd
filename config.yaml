@@ -130,23 +130,21 @@ languages:
   # #       process_limit: 100
   # #       memory_limit: 102400
   # #   version_cmd: "/usr/local/bin/stack --version"
-  # # zip:
-  # #   filename: "test.zip.bs64"
-  # #   compilation_options:
-  # #     path: ""
-  # #     args: ""
-  # #     resource_limits:
-  # #       time_limit: 6
-  # #       process_limit: 100
-  # #       memory_limit: 102400
-  # #   runtime_options:
-  # #     path: ""
-  # #     args: ""
-  # #     resource_limits:
-  # #       time_limit: 9
-  # #       process_limit: 100
-  # #       memory_limit: 102400
-  # #   version_cmd: "zip -v"
+  - id: zip
+    source: "test.zip.bs64"
+    build:
+      cmd: ""
+      limits:
+        wall_time_s: 6
+        max_processes: 100
+        memory_kb: 102400
+    run:
+      cmd: ""
+      limits:
+        wall_time_s: 9
+        max_processes: 100
+        memory_kb: 102400
+    version_cmd: "zip -v"
 
   
     

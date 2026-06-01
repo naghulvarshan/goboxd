@@ -37,16 +37,27 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 		return nil, err
 	}
 
-	// Step 3: Create test directories
-	if err = createTestWS(baseDir, input.Tests); err != nil {
-		return nil, err
-	}
-
-	// Step 4: Compile if needed
 	output := &types.Response{
 		Status:      "success",
 		TestOutputs: []types.TestOutput{},
 	}
+
+	// Step 3: If evaluation script present, write it and run it directly
+	if input.EvaluationScript != nil {
+		if err = addSource("evaluator.script", baseDir, *input.EvaluationScript); err != nil {
+			return nil, err
+		}
+		result := runEvaluationScript(baseDir, defaultArgs, filename, *input.EvaluationScriptLang, input.Run, languageConfig.RunOpts)
+		output.EvaluationResultJSON = result
+		return output, nil
+	}
+
+	// Step 4: Create test directories
+	if err = createTestWS(baseDir, input.Tests); err != nil {
+		return nil, err
+	}
+
+	// Step 5: Compile if needed
 	if languageConfig.BuildOpts != nil {
 		binary := languageConfig.BinaryFileName
 		if binary == nil {
@@ -290,4 +301,36 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *types.LimitsA
 		testResults = append(testResults, testRes)
 	}
 	return testResults
+}
+
+func runEvaluationScript(baseDir, defaultArgs, sourceFilename, evalScriptLang string,
+	ipConf *types.LimitsAndFlags, langOpts types.Options) *string {
+	args := []string{"--rw", "-e", "--cwd", "/", "-c", baseDir}
+	if ipConf != nil && ipConf.Limits.MaxProcesses != 0 {
+		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(ipConf.Limits.MaxProcesses), 10))
+	} else if langOpts.ResourceLimits.MaxProcesses != 0 {
+		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(langOpts.ResourceLimits.MaxProcesses), 10))
+	}
+	if ipConf != nil && ipConf.Limits.MemoryKB != 0 {
+		args = append(args, "--rlimit_as", strconv.FormatInt(ipConf.Limits.MemoryKB, 10))
+	} else if langOpts.ResourceLimits.MemoryKB != 0 {
+		args = append(args, "--rlimit_as", strconv.FormatInt(langOpts.ResourceLimits.MemoryKB, 10))
+	}
+	if ipConf != nil && ipConf.Limits.WallTime != 0 {
+		args = append(args, "--time_limit", strconv.FormatInt(int64(ipConf.Limits.WallTime), 10))
+	} else if langOpts.ResourceLimits.WallTime != 0 {
+		args = append(args, "--time_limit", strconv.FormatInt(int64(langOpts.ResourceLimits.WallTime), 10))
+	}
+	args = append(args, strings.Fields(defaultArgs)...)
+
+	args = append(args, evalScriptLang, "evaluator.script", sourceFilename)
+
+	cmd := exec.Command("/usr/local/bin/nsjail", args...)
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+	if err := cmd.Run(); err != nil {
+		slog.Debug("evaluation script failed", "stderr", err.Error(), "args", cmd.Args)
+	}
+	result := stdout.String()
+	return &result
 }

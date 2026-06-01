@@ -23,13 +23,15 @@ const (
 )
 
 type ProgramInfo struct {
-	Language         string          `json:"language"`
-	Source           string          `json:"source"`
-	SourceFileName   *string         `json:"source_filename,omitempty"`
-	ArtifaceFileName *string         `json:"artifact_filename,omitempty"`
-	Build            *LimitsAndFlags `json:"build,omitempty"`
-	Run              *LimitsAndFlags `json:"run,omitempty"`
-	Tests            []Tests         `json:"tests"`
+	Language             string          `json:"language"`
+	Source               string          `json:"source"`
+	SourceFileName       *string         `json:"source_filename,omitempty"`
+	ArtifaceFileName     *string         `json:"artifact_filename,omitempty"`
+	Build                *LimitsAndFlags `json:"build,omitempty"`
+	Run                  *LimitsAndFlags `json:"run,omitempty"`
+	Tests                []Tests         `json:"tests"`
+	EvaluationScript     *string         `json:"evaluation_script"`
+	EvaluationScriptLang *string         `json:"evaluation_script_lang"`
 }
 
 type LimitsAndFlags struct {
@@ -49,9 +51,10 @@ type Tests struct {
 }
 
 type Response struct {
-	Status      string            `json:"status"`
-	Build       *ExecutionDetails `json:"build,omitempty"`
-	TestOutputs []TestOutput      `json:"test"`
+	Status               string            `json:"status"`
+	Build                *ExecutionDetails `json:"build,omitempty"`
+	TestOutputs          []TestOutput      `json:"test,omitempty"`
+	EvaluationResultJSON *string           `json:"evaluation_result_json,omitempty"`
 }
 
 type ExecutionDetails struct {
@@ -106,7 +109,7 @@ func UnmarshallRequest(body []byte) (*ProgramInfo, error) {
 			},
 		}
 	}
-	if len(req.Tests) == 0 {
+	if len(req.Tests) == 0 && req.EvaluationScript == nil {
 		return nil, PreBuildError{
 			ErrorDetails: ErrorDetails{
 				Code:    InvalidFieldErrCode,
@@ -167,6 +170,14 @@ func UnmarshallRequest(body []byte) (*ProgramInfo, error) {
 					},
 				}
 			}
+		}
+	}
+	if req.EvaluationScript != nil && (req.EvaluationScriptLang == nil || *req.EvaluationScriptLang == "") {
+		return nil, PreBuildError{
+			ErrorDetails: ErrorDetails{
+				Code:    InvalidFileNameErrCode,
+				Message: "if evaluation_script is specified, evaluation_script_lang must be set to a valid language",
+			},
 		}
 	}
 	return req, nil

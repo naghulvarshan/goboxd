@@ -6,20 +6,20 @@ default_common_settings:
 languages:
   - id: c
     name: C
-    source_filename: "test.c"
+    source: "test.c"
     build:
       cmd: "/usr/bin/gcc"
       args: ["{{flags}}","-o", "a.out", "{{source}}"]
       limits:
-        wall_time_s: 3
+        wall_time_s: 10
         max_processes: 100
-        memory_kb: 10240
+        memory_kb: 524288
     run:
       cmd: "a.out"
       limits:
         wall_time_s: 3
-        max_processes: 0
-        memory_kb: 1024
+        max_processes: 64
+        memory_kb: 524288
     version_cmd: "/usr/bin/gcc --version"
   - id: py
     name: "Python 2.7"
@@ -39,33 +39,33 @@ languages:
       cmd: "/usr/bin/g++"
       args: ["{{flags}}","-o", "a.out", "{{source}}"]
       limits:
-        wall_time_s: 3
+        wall_time_s: 10
         max_processes: 100
-        memory_kb: 10240
+        memory_kb: 524288
     run:
       cmd: "a.out"
       limits:
         wall_time_s: 3
-        max_processes: 0
-        memory_kb: 1024
+        max_processes: 64
+        memory_kb: 524288
     version_cmd: "/usr/bin/g++ --version"
-  # java:
-  #   filename: "TAKE_FROM_REQUEST"
-  #   binary_filename: "TAKE_FROM_REQUEST"
-  #   compilation_options:
-  #     path: "/usr/bin/javac"
-  #     args: "{{ EXTRA_ARGS }} {{ FILENAME }}"
-  #     resource_limits:
-  #       time_limit: 6
-  #       process_limit: 100
-  #       memory_limit: 102400
-  #   runtime_options:
-  #     path: "/usr/bin/java"
-  #     args: "{{ BINARY_FILENAME }}"
-  #     resource_limits:
-  #       time_limit: 6
-  #       process_limit: 100
-  #       memory_limit: 102400
+  # - id: java
+  #   source: "TAKE_FROM_REQUEST"
+  #   artifact: "TAKE_FROM_REQUEST"
+  #   build:
+  #     cmd: "/usr/bin/javac"
+  #     args: ["{{flags}}", "-J-XX:-UseCompressedOops", "-J-Xmx256m", "-d", ".", "{{source}}"]
+  #     limits:
+  #       wall_time_s: 10
+  #       max_processes: 500
+  #       memory_kb: 3145728
+  #   run:
+  #     cmd: "/usr/bin/java"
+  #     args: ["-XX:-UseCompressedOops", "-Xmx256m", "-cp", ".", "{{artifact}}"]
+  #     limits:
+  #       wall_time_s: 6
+  #       max_processes: 500
+  #       memory_kb: 3145728
   #   version_cmd: "/usr/bin/javac --version"
   - id: py3
     source: "test.py"
@@ -78,25 +78,27 @@ languages:
         max_processes: 100
         memory_kb: 102400
     version_cmd: "/usr/bin/python3 --version"
-  # bash:
-  #   filename: "test.sh"
-  #   runtime_options:
-  #     path: "/bin/bash"
-  #     args: "{{ FILENAME }}"
-  #     resource_limits:
-  #       time_limit: 9
-  #       process_limit: 100
-  #       memory_limit: 102400
-  #   version_cmd: "/bin/bash --version"
-  # javascript:
-  #   filename: "test.js"
-  #   runtime_options:
-  #     path: "/usr/bin/node"
-  #     args: "{{ FILENAME }}"
-  #     resource_limits:
-  #       time_limit: 9
-  #       process_limit: 100
-  #       memory_limit: 102400
+  - id: bash
+    name: "Bash"
+    source: "solution.sh"
+    run:
+      cmd: "/bin/bash"
+      args: ["{{source}}"]
+      limits:
+        wall_time_s: 9
+        max_processes: 64
+        memory_kb: 524288
+    version_cmd: "/bin/bash --version"
+  # - id: javascript
+  #   name: "JavaScript"
+  #   source: "solution.js"
+  #   run:
+  #     cmd: "/usr/bin/node"
+  #     args: ["{{source}}"]
+  #     limits:
+  #       wall_time_s: 9
+  #       max_processes: 64
+  #       memory_kb: 524288
   #   version_cmd: "/usr/bin/node --version"
   # verilog:
   #   filename: "test.v"

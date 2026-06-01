@@ -122,6 +122,7 @@ func generateWorkSpace() (string, string, error) {
 		}
 	}
 	os.Mkdir(baseDir+"/proc", 0755)
+	os.Mkdir(baseDir+"/tmp", 0755)
 	return baseDir, id, nil
 }
 
@@ -176,9 +177,6 @@ func compileCode(baseDir, binaryName, filename string,
 		args = append(args, "--time_limit", strconv.FormatInt(int64(languageCompilationOpts.ResourceLimits.WallTime), 10))
 	}
 	args = append(args, strings.Fields(defaultArgs)...)
-	fmt.Printf("defaultArgs: %q\n", defaultArgs)
-	fmt.Printf("after split: %q\n", strings.Fields(defaultArgs))
-	args = append(args, "--symlink", "/lib:/lib64") // To be removed
 
 	compilation := strings.Join(languageCompilationOpts.Args, " ")
 	compilation = strings.ReplaceAll(compilation, "{{flags}}",
@@ -187,7 +185,6 @@ func compileCode(baseDir, binaryName, filename string,
 	compilation = strings.ReplaceAll(compilation, "{{artifact}}", binaryName)
 	args = append(args, "--", languageCompilationOpts.Cmd)
 	args = append(args, strings.Fields(compilation)...)
-	fmt.Printf("full args: %q\n", args)
 	cmd := exec.Command("/usr/local/bin/nsjail", args...)
 	start := time.Now()
 	out, err := cmd.CombinedOutput()
@@ -238,7 +235,7 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 	rtArgs := strings.Join(langOpts.Args, " ")
 	rtArgs = strings.ReplaceAll(rtArgs, "{{source}}", filename)
 	rtArgs = strings.ReplaceAll(rtArgs, "{{artifact}}", filename)
-	args = append(args, path)
+	args = append(args, "--", path)
 	args = append(args, strings.Fields(rtArgs)...)
 
 	for i := range tests {
@@ -339,7 +336,7 @@ func runEvaluationScript(baseDir, defaultArgs, sourceFilename, evalScriptLang st
 	}
 	args = append(args, strings.Fields(defaultArgs)...)
 
-	args = append(args, evalScriptLang, "evaluator.script", sourceFilename)
+	args = append(args, "--", evalScriptLang, "evaluator.script", sourceFilename)
 
 	cmd := exec.Command("/usr/local/bin/nsjail", args...)
 	var stdout bytes.Buffer

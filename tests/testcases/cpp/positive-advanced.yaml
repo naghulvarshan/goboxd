@@ -13,8 +13,8 @@ request:
   build:
     limits:
       wall_time_s: 3
-      memory_kb: 1024
-      max_processes: 1
+      memory_kb: 524288
+      max_processes: 100
     flags:
       - "--std=c++11"
   run:

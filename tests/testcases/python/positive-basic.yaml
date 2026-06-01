@@ -17,7 +17,7 @@ request:
   run:
     limits:
       wall_time_s: 5
-      memory_kb: 1024
+      memory_kb: 524288
       max_processes: 64
   tests:
     - stdin: ""

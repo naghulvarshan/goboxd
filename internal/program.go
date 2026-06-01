@@ -1,4 +1,4 @@
-package programs
+package server
 
 import (
 	"bytes"
@@ -15,10 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thesouldev/goboxd/internal/types"
 )
 
-func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.LanguageSettings) (*types.Response, error) {
+func Run(input *ProgramInfo, defaultArgs string, languageConfig LanguageSettings) (*Response, error) {
 
 	// Step 1: Initialize a directory to execute the code
 	baseDir, id, err := generateWorkSpace()
@@ -37,9 +36,9 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 		return nil, err
 	}
 
-	output := &types.Response{
+	output := &Response{
 		Status:      "success",
-		TestOutputs: []types.TestOutput{},
+		TestOutputs: []TestOutput{},
 	}
 
 	// Step 3: If evaluation script present, write it and run it directly
@@ -49,7 +48,7 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 		}
 		result := runEvaluationScript(baseDir, defaultArgs, filename, *input.EvaluationScriptLang, input.Run, languageConfig.RunOpts)
 		output.EvaluationResultJSON = result
-		output.Build = &types.ExecutionDetails{
+		output.Build = &ExecutionDetails{
 			Status: "NOT_RUN",
 		}
 		return output, nil
@@ -136,7 +135,7 @@ func addSource(sourceName, baseDir, source string) error {
 	return nil
 }
 
-func createTestWS(baseDir string, tests []types.Tests) error {
+func createTestWS(baseDir string, tests []Tests) error {
 	var err error
 	for i := range tests {
 		testDir := fmt.Sprintf("test_%d", i)
@@ -156,8 +155,8 @@ func createTestWS(baseDir string, tests []types.Tests) error {
 }
 
 func compileCode(baseDir, binaryName, filename string,
-	ipBuildOpts *types.LimitsAndFlags, languageCompilationOpts *types.Options,
-	output *types.Response, defaultArgs string) error {
+	ipBuildOpts *LimitsAndFlags, languageCompilationOpts *Options,
+	output *Response, defaultArgs string) error {
 	slog.Debug("compiling program")
 	args := []string{"--rw", "--log", baseDir + "/log",
 		"-e", "--cwd", "/", "-c", baseDir}
@@ -194,7 +193,7 @@ func compileCode(baseDir, binaryName, filename string,
 	out, err := cmd.CombinedOutput()
 	log.Println(string(out))
 	elapsed := time.Since(start).Milliseconds()
-	output.Build = &types.ExecutionDetails{
+	output.Build = &ExecutionDetails{
 		Status:   "success",
 		Duration: int(elapsed),
 	}
@@ -212,9 +211,9 @@ func compileCode(baseDir, binaryName, filename string,
 	return nil
 }
 
-func runCode(baseDir, id, defaultArgs, filename string, inputPref *types.LimitsAndFlags,
-	langOpts types.Options, tests []types.Tests) []types.TestOutput {
-	testResults := []types.TestOutput{}
+func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlags,
+	langOpts Options, tests []Tests) []TestOutput {
+	testResults := []TestOutput{}
 	args := []string{"--rw", "-e", "--cwd", "/", "-c", baseDir}
 	if inputPref != nil && inputPref.Limits.MaxProcesses != 0 {
 		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(inputPref.Limits.MaxProcesses), 10))
@@ -244,8 +243,8 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *types.LimitsA
 
 		ipFileCont, err := os.ReadFile(ipFile)
 		if err != nil {
-			testResults = append(testResults, types.TestOutput{
-				ExecutionDetails: types.ExecutionDetails{
+			testResults = append(testResults, TestOutput{
+				ExecutionDetails: ExecutionDetails{
 					Status:   "error",
 					Duration: 0,
 				},
@@ -283,8 +282,8 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *types.LimitsA
 			os.Remove(cgroupPath)
 		}
 
-		testRes := types.TestOutput{
-			ExecutionDetails: types.ExecutionDetails{
+		testRes := TestOutput{
+			ExecutionDetails: ExecutionDetails{
 				Status:   "success",
 				STDOut:   string(out),
 				Duration: int(elapsed.Milliseconds()),
@@ -307,7 +306,7 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *types.LimitsA
 }
 
 func runEvaluationScript(baseDir, defaultArgs, sourceFilename, evalScriptLang string,
-	ipConf *types.LimitsAndFlags, langOpts types.Options) *string {
+	ipConf *LimitsAndFlags, langOpts Options) *string {
 	args := []string{"--rw", "-e", "--cwd", "/", "-c", baseDir}
 	if ipConf != nil && ipConf.Limits.MaxProcesses != 0 {
 		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(ipConf.Limits.MaxProcesses), 10))

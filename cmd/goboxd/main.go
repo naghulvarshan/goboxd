@@ -8,8 +8,7 @@ import (
 	"os"
 
 	"github.com/ghodss/yaml"
-	"github.com/thesouldev/goboxd/internal/config"
-	server "github.com/thesouldev/goboxd/internal/server"
+	server "github.com/thesouldev/goboxd/internal"
 )
 
 var cfgPath = "/usr/local/bin/config.yaml"
@@ -24,7 +23,7 @@ func main() {
 	flag.StringVar(&port, "port", "8080", "--port 8080")
 	flag.Parse()
 
-	cf, err := config.LoadConfig(cfgPath)
+	cf, err := server.LoadConfig(cfgPath)
 	if err != nil {
 		log.Fatal(err)
 	}

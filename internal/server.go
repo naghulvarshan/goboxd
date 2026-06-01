@@ -16,13 +16,11 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/thesouldev/goboxd/internal/programs"
-	"github.com/thesouldev/goboxd/internal/types"
 )
 
-var config *types.Config
+var config *Config
 
-var langMap map[string]types.LanguageSettings
+var langMap map[string]LanguageSettings
 
 var activeRequests int64 // To keep track of active requests
 var jobsTotal, jobsFailedWithIntSvrErr atomic.Int64
@@ -41,19 +39,19 @@ func healthz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	slog.Info("API Report", "path", "/readyz", "method", "GET")
-	readyzRes := types.ReadyzResponse{
+	readyzRes := ReadyzResponse{
 		Status: "success",
-		Nsjail: types.SmokeTestRes{
+		Nsjail: SmokeTestRes{
 			Ok:      true,
 			Version: &[]string{os.Getenv("NSJAIL_VERSION")}[0],
 		},
-		Languages: make(map[string]types.SmokeTestRes),
+		Languages: make(map[string]SmokeTestRes),
 	}
 	var errored bool
 	// Run version cmd for each language supported
 	for i := range config.LanguageSettings {
 		if config.LanguageSettings[i].VersionCmd == nil {
-			readyzRes.Languages[config.LanguageSettings[i].Id] = types.SmokeTestRes{
+			readyzRes.Languages[config.LanguageSettings[i].Id] = SmokeTestRes{
 				Ok:    false,
 				Error: &[]string{"version command not configured"}[0],
 			}
@@ -61,18 +59,18 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		}
 		args := strings.Fields(*config.LanguageSettings[i].VersionCmd)
 		if len(args) == 0 {
-			readyzRes.Languages[config.LanguageSettings[i].Id] = types.SmokeTestRes{
+			readyzRes.Languages[config.LanguageSettings[i].Id] = SmokeTestRes{
 				Ok:    false,
 				Error: &[]string{"version command not configured"}[0],
 			}
 			continue
 		}
 		out, err := exec.Command(args[0], args[1:]...).CombinedOutput()
-		var langRes types.SmokeTestRes
+		var langRes SmokeTestRes
 		if err != nil {
 			errored = true
 			errStr := err.Error()
-			langRes = types.SmokeTestRes{
+			langRes = SmokeTestRes{
 				Ok:    false,
 				Error: &errStr,
 			}
@@ -81,7 +79,7 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		}
 		v := string(out)
 		v = strings.TrimSuffix(v, "\n")
-		langRes = types.SmokeTestRes{
+		langRes = SmokeTestRes{
 			Ok:      true,
 			Version: &v,
 		}
@@ -98,7 +96,7 @@ func readyz(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 func info(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	slog.Info("API Report", "path", "/info", "method", "GET")
-	resp := types.InfoResp{
+	resp := InfoResp{
 		BuildInfo: map[string]string{
 			"version":    config.Version,
 			"commit":     os.Getenv("GIT_COMMIT"),
@@ -110,9 +108,9 @@ func info(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		},
 		Languages: make([]json.RawMessage, 0),
 		Limits: map[string]interface{}{
-			"max_source_bytes":    types.SourceMaxLimit,
-			"max_tests":           types.MaxTestCases,
-			"max_concurrent_jobs": types.MaxJobs, // TODO: need to implement
+			"max_source_bytes":    SourceMaxLimit,
+			"max_tests":           MaxTestCases,
+			"max_concurrent_jobs": MaxJobs, // TODO: need to implement
 		},
 		Stats: map[string]interface{}{
 			"in_flight_jobs":       activeRequests,
@@ -141,7 +139,7 @@ func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		errorResp(InvalidInputError{err}, w)
 		return
 	}
-	req, err := types.UnmarshallRequest(reqBody)
+	req, err := UnmarshallRequest(reqBody)
 	if err != nil {
 		errorResp(InvalidInputError{err}, w)
 		return
@@ -151,9 +149,9 @@ func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		return
 	}
 	if langSettings, ok := langMap[req.Language]; !ok {
-		errorResp(InvalidInputError{types.PreBuildError{
-			ErrorDetails: types.ErrorDetails{
-				Code:    types.UnkownLanugageErrCode,
+		errorResp(InvalidInputError{PreBuildError{
+			ErrorDetails: ErrorDetails{
+				Code:    UnkownLanugageErrCode,
 				Message: "langauge is unkown",
 			},
 		}}, w)
@@ -162,7 +160,7 @@ func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		atomic.AddInt64(&activeRequests, 1)
 		jobsTotal.Add(1)
 		defer atomic.AddInt64(&activeRequests, -1)
-		out, err := programs.Run(req, config.DefaultCommonSettings["nsjail_args"], langSettings)
+		out, err := Run(req, config.DefaultCommonSettings["nsjail_args"], langSettings)
 		if err != nil {
 			errorResp(err, w)
 			return
@@ -178,7 +176,7 @@ func configureRouter() *httprouter.Router {
 	return router
 }
 
-func Serve(port string, cfg *types.Config) {
+func Serve(port string, cfg *Config) {
 	config = cfg
 	router := configureRouter()
 	router.GET("/healthz", healthz)
@@ -186,7 +184,7 @@ func Serve(port string, cfg *types.Config) {
 	router.POST("/run", runProgram)
 	router.GET("/info", info)
 	go junkCleaner(context.TODO())
-	langMap = make(map[string]types.LanguageSettings)
+	langMap = make(map[string]LanguageSettings)
 	for i := range cfg.LanguageSettings {
 		id := cfg.LanguageSettings[i].Id
 		if _, ok := langMap[id]; ok {

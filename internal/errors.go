@@ -1,21 +1,23 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type InvalidInputError struct {
-	Err error
+	Message string
 }
 
 type InternalServerError struct {
-	Err error
+	Message string
 }
 
 func (i InvalidInputError) Error() string {
-	return i.Err.Error()
+	return "invalid input: " + i.Message
 }
 
 func (i InternalServerError) Error() string {
-	return i.Err.Error()
+	return "internal server error"
 }
 
 func errorResp(err error, w http.ResponseWriter) {

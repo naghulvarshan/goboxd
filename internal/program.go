@@ -14,7 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 )
 
 func Run(input *ProgramInfo, defaultArgs string, languageConfig LanguageSettings) (*Response, error) {
@@ -101,7 +100,7 @@ func generateWorkSpace() (string, string, error) {
 	id, err := idGenerator()
 	if err != nil {
 		slog.Debug("error generating id", "error", err)
-		return "", "", errors.New("internal server error")
+		return "", "", InternalServerError{}
 	}
 	home, _ := os.UserHomeDir()
 	baseDir := filepath.Join(home, "nsjail_programs", "nsip_"+id)
@@ -112,12 +111,12 @@ func generateWorkSpace() (string, string, error) {
 			id, err = idGenerator()
 			if err != nil {
 				slog.Debug("error generating id", "error", err)
-				return "", "", errors.New("internal server error")
+				return "", "", InternalServerError{}
 			}
 			baseDir = filepath.Join(home, "nsip_"+id)
 			err = os.Mkdir(baseDir, 0755)
 			if err != nil {
-				return "", "", errors.New("internal server error")
+				return "", "", InternalServerError{}
 			}
 
 		}
@@ -130,7 +129,7 @@ func addSource(sourceName, baseDir, source string) error {
 	err := os.WriteFile(fmt.Sprintf("%s/%s", baseDir, sourceName), []byte(source), 0755)
 	if err != nil {
 		slog.Debug("error creating and writing to file", "error", err)
-		return errors.New("internal server error")
+		return InternalServerError{}
 	}
 	return nil
 }
@@ -142,13 +141,13 @@ func createTestWS(baseDir string, tests []Tests) error {
 		err = os.Mkdir(fmt.Sprintf("%s/%s", baseDir, testDir), 0755)
 		if err != nil {
 			slog.Debug("error creating directory", "error", err)
-			return errors.New("internal server error")
+			return InternalServerError{}
 		}
 
 		err = os.WriteFile(fmt.Sprintf("%s/%s/%s", baseDir, testDir, "input"), []byte(tests[i].Stdin), 0755)
 		if err != nil {
 			slog.Debug("error writing test case input", "error", err)
-			return errors.New("internal server error")
+			return InternalServerError{}
 		}
 	}
 	return nil

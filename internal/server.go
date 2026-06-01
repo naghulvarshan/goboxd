@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"log/slog"
@@ -121,7 +120,7 @@ func info(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	mu.RLock()
 	defer mu.RUnlock()
 	if lastInternalErr != nil {
-		resp.Stats["last_internal_server_error"] = lastInternalErr.Format(time.DateTime)
+		resp.Stats["last_internal_error_at"] = lastInternalErr.Format(time.DateTime)
 	}
 	for _, lang := range config.LanguageSettings {
 		lang.VersionCmd = nil
@@ -136,25 +135,30 @@ func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	slog.Info("API Report", "path", "/run", "method", "POST")
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		errorResp(InvalidInputError{err}, w)
+		errorResp(InvalidInputError{Message: err.Error()}, w)
 		return
 	}
 	req, err := UnmarshallRequest(reqBody)
 	if err != nil {
-		errorResp(InvalidInputError{err}, w)
+		errorResp(InvalidInputError{Message: err.Error()}, w)
 		return
 	}
 	if config == nil || config.LanguageSettings == nil {
-		errorResp(InternalServerError{errors.New("internal server error")}, w)
+		errorResp(InternalServerError{}, w)
+		mu.Lock()
+		defer mu.Unlock()
+		now := time.Now()
+		lastInternalErr = &now
+		jobsFailedWithIntSvrErr.Add(1)
 		return
 	}
 	if langSettings, ok := langMap[req.Language]; !ok {
-		errorResp(InvalidInputError{PreBuildError{
+		errorResp(InvalidInputError{Message: errToString(PreBuildError{
 			ErrorDetails: ErrorDetails{
 				Code:    UnkownLanugageErrCode,
 				Message: "langauge is unkown",
 			},
-		}}, w)
+		})}, w)
 		return
 	} else {
 		atomic.AddInt64(&activeRequests, 1)
@@ -163,12 +167,25 @@ func runProgram(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		out, err := Run(req, config.DefaultCommonSettings["nsjail_args"], langSettings)
 		if err != nil {
 			errorResp(err, w)
+			switch err.(type) {
+			case InternalServerError:
+				mu.Lock()
+				defer mu.Unlock()
+				now := time.Now()
+				lastInternalErr = &now
+				jobsFailedWithIntSvrErr.Add(1)
+			}
 			return
 		}
 		resp, _ := json.Marshal(out)
 		writeResponse(string(resp), w, http.StatusOK)
 	}
 
+}
+
+func errToString(pe PreBuildError) string {
+	out, _ := json.Marshal(pe)
+	return string(out)
 }
 
 func configureRouter() *httprouter.Router {

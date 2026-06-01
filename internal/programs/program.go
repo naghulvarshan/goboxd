@@ -49,6 +49,9 @@ func Run(input *types.ProgramInfo, defaultArgs string, languageConfig types.Lang
 		}
 		result := runEvaluationScript(baseDir, defaultArgs, filename, *input.EvaluationScriptLang, input.Run, languageConfig.RunOpts)
 		output.EvaluationResultJSON = result
+		output.Build = &types.ExecutionDetails{
+			Status: "NOT_RUN",
+		}
 		return output, nil
 	}
 

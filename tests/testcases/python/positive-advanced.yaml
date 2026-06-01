@@ -38,5 +38,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Results:\nFirst addition: 15\nMultiplication: 12\nFinal addition: 27\n\nCalculation History:\nAdded 10 + 5 = 15\nMultiplied 3 * 4 = 12\nAdded 15 + 12 = 27\n\nSquares: [1, 4, 9, 16, 25]\nWord lengths: {'python': 6, 'world': 5, 'hello': 5}\n"

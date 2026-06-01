@@ -14,4 +14,4 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted

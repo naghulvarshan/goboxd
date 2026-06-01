@@ -30,5 +30,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Line 1\nLine 2\nLine 3\n"

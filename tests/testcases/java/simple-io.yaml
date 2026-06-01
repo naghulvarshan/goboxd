@@ -33,7 +33,7 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Sum: 8\nProduct: 15\n"
-    - status: success
+    - status: accepted
       stdout: "Sum: 30\nProduct: 200\n"

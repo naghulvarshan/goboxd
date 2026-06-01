@@ -16,5 +16,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Memory test completed\n"

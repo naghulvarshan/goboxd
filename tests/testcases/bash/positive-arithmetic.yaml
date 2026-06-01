@@ -14,5 +14,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Sum: 10\nProduct: 21\n"

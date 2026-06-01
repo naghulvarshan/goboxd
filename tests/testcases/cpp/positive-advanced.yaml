@@ -29,5 +29,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "1 2 3 4 5 "

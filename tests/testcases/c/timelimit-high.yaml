@@ -25,5 +25,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Time test 0\nTime test 1\nTime test 2\nTime test 3\nTime test 4\n"

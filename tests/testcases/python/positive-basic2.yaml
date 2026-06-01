@@ -14,5 +14,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Hello from Python 2!\n"

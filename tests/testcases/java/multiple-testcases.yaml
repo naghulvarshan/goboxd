@@ -37,11 +37,11 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "120\n"
-    - status: success
+    - status: accepted
       stdout: "1\n"
-    - status: success
+    - status: accepted
       stdout: "3628800\n"
-    - status: success
+    - status: accepted
       stdout: "1307674368000\n"

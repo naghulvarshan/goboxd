@@ -53,5 +53,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "List: [1, 1, 3, 4, 5]\nSet size: 4\nMap keys: [0, 1, 2, 3, 4]\nQueue peek: 3\nStack peek: 5\n"

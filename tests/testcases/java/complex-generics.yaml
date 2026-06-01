@@ -72,5 +72,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Max number: 20\nPairs: [(0, Value_10), (1, Value_20), (2, Value_5), (3, Value_15)]\n"

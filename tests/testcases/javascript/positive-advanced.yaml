@@ -18,5 +18,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "JavaScript advanced test\nSum: 15\n"

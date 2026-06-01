@@ -27,5 +27,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Sum: 5050\n"

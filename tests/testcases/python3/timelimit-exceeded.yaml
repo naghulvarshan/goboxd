@@ -1,0 +1,19 @@
+request:
+  language: py3
+  source: |
+    while True:
+      pass
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 1
+      memory_kb: 102400
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: ""
+
+expected:
+  status: success
+  tests:
+    - status: time_exceeded

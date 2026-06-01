@@ -166,9 +166,9 @@ func compileCode(baseDir, binaryName, filename string,
 		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(languageCompilationOpts.ResourceLimits.MaxProcesses), 10))
 	}
 	if ipBuildOpts.Limits.MemoryKB != 0 {
-		args = append(args, "--rlimit_as", strconv.FormatInt(ipBuildOpts.Limits.MemoryKB, 10))
+		args = append(args, "--rlimit_as", strconv.FormatInt(ipBuildOpts.Limits.MemoryKB/1024, 10))
 	} else if languageCompilationOpts.ResourceLimits.MemoryKB != 0 {
-		args = append(args, "--rlimit_as", strconv.FormatInt(languageCompilationOpts.ResourceLimits.MemoryKB, 10))
+		args = append(args, "--rlimit_as", strconv.FormatInt(languageCompilationOpts.ResourceLimits.MemoryKB/1024, 10))
 	}
 	if ipBuildOpts.Limits.WallTime != 0 {
 		args = append(args, "--time_limit", strconv.FormatInt(int64(ipBuildOpts.Limits.WallTime), 10))
@@ -184,6 +184,7 @@ func compileCode(baseDir, binaryName, filename string,
 	compilation = strings.ReplaceAll(compilation, "{{flags}}",
 		strings.Join(ipBuildOpts.Flags, " "))
 	compilation = strings.ReplaceAll(compilation, "{{source}}", filename)
+	compilation = strings.ReplaceAll(compilation, "{{artifact}}", binaryName)
 	args = append(args, "--", languageCompilationOpts.Cmd)
 	args = append(args, strings.Fields(compilation)...)
 	fmt.Printf("full args: %q\n", args)
@@ -193,15 +194,14 @@ func compileCode(baseDir, binaryName, filename string,
 	log.Println(string(out))
 	elapsed := time.Since(start).Milliseconds()
 	output.Build = &ExecutionDetails{
-		Status:   "success",
+		Status:   BuildOk,
 		Duration: int(elapsed),
 	}
 	if err != nil {
 		logs, _ := os.ReadFile(baseDir + "/log")
 		output.Status = "compilation_error"
-		output.Build.Status = "error"
+		output.Build.Status = BuildFailed
 		output.Build.STDErr = string(logs)
-		log.Println(err)
 		return nil
 	}
 	output.Build.STDOut = string(out)
@@ -219,11 +219,6 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 	} else if langOpts.ResourceLimits.MaxProcesses != 0 {
 		args = append(args, "--rlimit_nproc", strconv.FormatInt(int64(langOpts.ResourceLimits.MaxProcesses), 10))
 	}
-	if inputPref != nil && inputPref.Limits.MemoryKB != 0 {
-		args = append(args, "--rlimit_as", strconv.FormatInt(inputPref.Limits.MemoryKB, 10))
-	} else if langOpts.ResourceLimits.MemoryKB != 0 {
-		args = append(args, "--rlimit_as", strconv.FormatInt(langOpts.ResourceLimits.MemoryKB, 10))
-	}
 	if inputPref != nil && inputPref.Limits.WallTime != 0 {
 		args = append(args, "--time_limit", strconv.FormatInt(int64(inputPref.Limits.WallTime), 10))
 	} else if langOpts.ResourceLimits.WallTime != 0 {
@@ -236,6 +231,15 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 	rtArgs = strings.ReplaceAll(rtArgs, "{{artifact}}", filename)
 	args = append(args, path)
 	args = append(args, strings.Fields(rtArgs)...)
+
+	effectiveMemKB := langOpts.ResourceLimits.MemoryKB
+	if inputPref != nil && inputPref.Limits.MemoryKB != 0 {
+		effectiveMemKB = inputPref.Limits.MemoryKB
+	}
+	if effectiveMemKB > 0 {
+		args = append(args, "--rlimit_as", strconv.FormatInt(effectiveMemKB/1024, 10))
+	}
+
 	for i := range tests {
 		testDir := fmt.Sprintf("test_%d", i)
 		ipFile := fmt.Sprintf("%s/%s/%s", baseDir, testDir, "input")
@@ -252,6 +256,10 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 
 		cgroupPath := fmt.Sprintf("/sys/fs/cgroup/goboxd/run_%s_%d", id, i)
 		cgroupCreated := os.Mkdir(cgroupPath, 0755) == nil
+		if cgroupCreated && effectiveMemKB > 0 {
+			os.WriteFile(cgroupPath+"/memory.max",
+				[]byte(strconv.FormatInt(effectiveMemKB*1024, 10)), 0644)
+		}
 
 		cmd := exec.Command("/usr/local/bin/nsjail", args...)
 		var stdout, stderr bytes.Buffer
@@ -283,19 +291,25 @@ func runCode(baseDir, id, defaultArgs, filename string, inputPref *LimitsAndFlag
 
 		testRes := TestOutput{
 			ExecutionDetails: ExecutionDetails{
-				Status:   "success",
+				Status:   TestAccepted,
 				STDOut:   string(out),
 				Duration: int(elapsed.Milliseconds()),
 			},
 			MemoryPeakKb: memPeakKb,
 		}
 		if runErr != nil {
-			slog.Debug("nsjail failed",
-				"stderr", stderr.String(),
-				"args", cmd.Args,
-			)
-			testRes.Status = "errored"
-			testRes.STDErr = stderr.String()
+			stderrStr := stderr.String()
+			slog.Debug("nsjail failed", "stderr", stderrStr, "args", cmd.Args)
+			switch {
+			case strings.Contains(stderrStr, "run time >= time limit"):
+				testRes.Status = "time_exceeded"
+			case effectiveMemKB > 0 && (strings.Contains(stderrStr, "MemoryError") ||
+				strings.Contains(stderrStr, "terminated with signal: 9")):
+				testRes.Status = "memory_exceeded"
+			default:
+				testRes.Status = "errored"
+			}
+			testRes.STDErr = stderrStr
 		} else if string(out) != tests[i].ExpectedOut {
 			testRes.ExecutionDetails.Status = "wrong_output"
 		}

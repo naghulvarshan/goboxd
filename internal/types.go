@@ -23,6 +23,22 @@ const (
 	MaxJobs                  = 10 // TODO: implement this
 )
 
+type Status string
+
+var (
+	BuildOk          Status = "ok"
+	BuildFailed      Status = "failed"
+	BuildInternalErr Status = "internal_error"
+)
+
+var (
+	TestAccepted       Status = "accepted"
+	TestWrongOutput    Status = "wrong_output"
+	TestTimeExceeded   Status = "time_exceeded"
+	TestMemoryExceeded Status = "memory_exceeded"
+	TestRuntimeError   Status = "runtime_error"
+)
+
 type ProgramInfo struct {
 	Language             string          `json:"language"`
 	Source               string          `json:"source"`
@@ -59,7 +75,7 @@ type Response struct {
 }
 
 type ExecutionDetails struct {
-	Status   string `json:"status"`
+	Status   Status `json:"status"`
 	STDOut   string `json:"stdout"`
 	STDErr   string `json:"stderr"`
 	Duration int    `json:"duration_ms"`

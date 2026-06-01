@@ -34,5 +34,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "The 1000th prime is: 7919\n"

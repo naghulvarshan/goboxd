@@ -36,5 +36,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "List size: 10000\nMap size: 10000\nChecksum: 495000\n"

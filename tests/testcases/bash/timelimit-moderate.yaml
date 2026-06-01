@@ -19,5 +19,5 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Bash time test completed\n"

@@ -21,9 +21,9 @@ request:
 expected:
   status: success
   tests:
-    - status: success
+    - status: accepted
       stdout: "Line 1\n"
-    - status: success
+    - status: accepted
       stdout: "Line 1\nLine 2\n"
-    - status: success
+    - status: accepted
       stdout: "Line 1\nLine 2\nLine 3\nLine 4\n"

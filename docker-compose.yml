@@ -8,6 +8,7 @@ services:
     ports:
       - "8080:8080"
     privileged: true
+    cgroup: host
 
   tools:
     build:

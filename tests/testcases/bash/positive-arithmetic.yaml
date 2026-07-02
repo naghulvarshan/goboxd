@@ -1,0 +1,18 @@
+request:
+  language: bash
+  source: "#!/bin/bash\nread a\nread b\nsum=$((a + b))\nproduct=$((a * b))\necho \"Sum: $sum\"\necho \"Product: $product\""
+  source_filename: solution.sh
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: "7\n3"
+      expected_stdout: "Sum: 10\nProduct: 21\n"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "Sum: 10\nProduct: 21\n"

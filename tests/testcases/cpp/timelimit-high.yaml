@@ -1,0 +1,26 @@
+request:
+  language: cpp
+  source: "#include <iostream>\nint main() { std::cout << \"done\"; return 0; }"
+  source_filename: solution.cpp
+  artifact_filename: solution
+  build:
+    limits:
+      wall_time_s: 10
+      memory_kb: 524288
+      max_processes: 100
+    flags:
+      - "--std=c++11"
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "done"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "done"

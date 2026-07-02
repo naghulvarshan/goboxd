@@ -1,0 +1,30 @@
+request:
+  language: py
+  source: |
+    result = 10 + 5
+    print("10 + 5 = " + str(result))
+    name = "World"
+    print("Hello, " + name + "!")
+    numbers = [1, 2, 3, 4, 5]
+    print("Sum of " + str(numbers) + " = " + str(sum(numbers)))
+    def factorial(n):
+        if n <= 1: return 1
+        return n * factorial(n - 1)
+    print("Factorial of 5 = " + str(factorial(5)))
+    data = {"language": "Python", "version": 2.7}
+    print("Using " + data["language"] + " version " + str(data["version"]))
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "10 + 5 = 15\nHello, World!\nSum of [1, 2, 3, 4, 5] = 15\nFactorial of 5 = 120\nUsing Python version 2.7\n"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "10 + 5 = 15\nHello, World!\nSum of [1, 2, 3, 4, 5] = 15\nFactorial of 5 = 120\nUsing Python version 2.7\n"

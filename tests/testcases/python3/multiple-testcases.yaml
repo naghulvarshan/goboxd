@@ -1,0 +1,29 @@
+request:
+  language: py3
+  source: |
+    n = int(input())
+    for i in range(n):
+        print(f"Line {i+1}")
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: "1"
+      expected_stdout: "Line 1\n"
+    - stdin: "2"
+      expected_stdout: "Line 1\nLine 2\n"
+    - stdin: "4"
+      expected_stdout: "Line 1\nLine 2\nLine 3\nLine 4\n"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "Line 1\n"
+    - status: accepted
+      stdout: "Line 1\nLine 2\n"
+    - status: accepted
+      stdout: "Line 1\nLine 2\nLine 3\nLine 4\n"

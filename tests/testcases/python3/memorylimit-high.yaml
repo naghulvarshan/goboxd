@@ -1,0 +1,20 @@
+request:
+  language: py3
+  source: |
+    data = [1, 2, 3, 4, 5] * 1000
+    print("Memory test completed")
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 9
+      memory_kb: 102400
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Memory test completed\n"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "Memory test completed\n"

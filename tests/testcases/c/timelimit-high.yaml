@@ -1,0 +1,29 @@
+request:
+  language: c
+  source: |
+    #include <stdio.h>
+    int main() {
+        for (int i = 0; i < 5; i++) printf("Time test %d\n", i);
+        return 0;
+    }
+  source_filename: solution.c
+  artifact_filename: solution
+  build:
+    limits:
+      wall_time_s: 10
+      memory_kb: 524288
+      max_processes: 100
+  run:
+    limits:
+      wall_time_s: 10
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Time test 0\nTime test 1\nTime test 2\nTime test 3\nTime test 4\n"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "Time test 0\nTime test 1\nTime test 2\nTime test 3\nTime test 4\n"

@@ -1,0 +1,42 @@
+request:
+  language: py
+  source: |
+    class Calculator(object):
+        def __init__(self): self.history = []
+        def add(self, a, b):
+            r = a + b
+            self.history.append("Added " + str(a) + " + " + str(b) + " = " + str(r))
+            return r
+        def multiply(self, a, b):
+            r = a * b
+            self.history.append("Multiplied " + str(a) + " * " + str(b) + " = " + str(r))
+            return r
+        def get_history(self): return self.history
+    calc = Calculator()
+    r1 = calc.add(10, 5)
+    r2 = calc.multiply(3, 4)
+    r3 = calc.add(r1, r2)
+    print("Results:")
+    print("First addition: " + str(r1))
+    print("Multiplication: " + str(r2))
+    print("Final addition: " + str(r3))
+    print("\nCalculation History:")
+    for e in calc.get_history(): print(e)
+    print("\nSquares: " + str([x*x for x in [1,2,3,4,5]]))
+    wl = {"hello": 5, "world": 5, "python": 6}
+    print("Word lengths: " + str(wl))
+  source_filename: solution.py
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Results:\nFirst addition: 15\nMultiplication: 12\nFinal addition: 27\n\nCalculation History:\nAdded 10 + 5 = 15\nMultiplied 3 * 4 = 12\nAdded 15 + 12 = 27\n\nSquares: [1, 4, 9, 16, 25]\nWord lengths: {'python': 6, 'world': 5, 'hello': 5}\n"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "Results:\nFirst addition: 15\nMultiplication: 12\nFinal addition: 27\n\nCalculation History:\nAdded 10 + 5 = 15\nMultiplied 3 * 4 = 12\nAdded 15 + 12 = 27\n\nSquares: [1, 4, 9, 16, 25]\nWord lengths: {'python': 6, 'world': 5, 'hello': 5}\n"

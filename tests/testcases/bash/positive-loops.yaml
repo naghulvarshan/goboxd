@@ -1,0 +1,26 @@
+request:
+  language: bash
+  source: |
+    #!/bin/bash
+    for i in {1..5}; do
+      if [ $i -eq 3 ]; then
+        echo "Middle: $i"
+      else
+        echo "Number: $i"
+      fi
+    done
+  source_filename: solution.sh
+  run:
+    limits:
+      wall_time_s: 5
+      memory_kb: 524288
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Number: 1\nNumber: 2\nMiddle: 3\nNumber: 4\nNumber: 5\n"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "Number: 1\nNumber: 2\nMiddle: 3\nNumber: 4\nNumber: 5\n"

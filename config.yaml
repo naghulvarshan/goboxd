@@ -1,0 +1,154 @@
+---
+version: "0.1.0"
+nsjail_path: "/usr/local/bin/nsjail"
+default_common_settings: 
+  nsjail_args: "-B /bin -B /usr -B /lib -B /dev -B /etc -B /var -B /dev"
+languages:
+  - id: c
+    name: C
+    source: "test.c"
+    build:
+      cmd: "/usr/bin/gcc"
+      args: ["{{flags}}","-o", "a.out", "{{source}}"]
+      limits:
+        wall_time_s: 10
+        max_processes: 100
+        memory_kb: 524288
+    run:
+      cmd: "a.out"
+      limits:
+        wall_time_s: 3
+        max_processes: 64
+        memory_kb: 524288
+    version_cmd: "/usr/bin/gcc --version"
+  - id: py
+    name: "Python 2.7"
+    source: "test.py"
+    run:
+      cmd: "/usr/local/bin/python2.7"
+      args: ["{{source}}"]
+      limits:
+        wall_time_s: 9
+        max_processes: 100
+        memory_kb: 102400
+    version_cmd: "/usr/local/bin/python2.7 --version"
+  - id: cpp
+    name: "C++"
+    source: "test.cpp"
+    build:
+      cmd: "/usr/bin/g++"
+      args: ["{{flags}}","-o", "a.out", "{{source}}"]
+      limits:
+        wall_time_s: 10
+        max_processes: 100
+        memory_kb: 524288
+    run:
+      cmd: "a.out"
+      limits:
+        wall_time_s: 3
+        max_processes: 64
+        memory_kb: 524288
+    version_cmd: "/usr/bin/g++ --version"
+  # - id: java
+  #   source: "TAKE_FROM_REQUEST"
+  #   artifact: "TAKE_FROM_REQUEST"
+  #   build:
+  #     cmd: "/usr/bin/javac"
+  #     args: ["{{flags}}", "-J-XX:-UseCompressedOops", "-J-Xmx256m", "-d", ".", "{{source}}"]
+  #     limits:
+  #       wall_time_s: 10
+  #       max_processes: 500
+  #       memory_kb: 3145728
+  #   run:
+  #     cmd: "/usr/bin/java"
+  #     args: ["-XX:-UseCompressedOops", "-Xmx256m", "-cp", ".", "{{artifact}}"]
+  #     limits:
+  #       wall_time_s: 6
+  #       max_processes: 500
+  #       memory_kb: 3145728
+  #   version_cmd: "/usr/bin/javac --version"
+  - id: py3
+    source: "test.py"
+    name: "Python 3"
+    run:
+      cmd: "/usr/bin/python3"
+      args: ["{{source}}"]
+      limits:
+        wall_time_s: 9
+        max_processes: 100
+        memory_kb: 102400
+    version_cmd: "/usr/bin/python3 --version"
+  - id: bash
+    name: "Bash"
+    source: "solution.sh"
+    run:
+      cmd: "/bin/bash"
+      args: ["{{source}}"]
+      limits:
+        wall_time_s: 9
+        max_processes: 64
+        memory_kb: 524288
+    version_cmd: "/bin/bash --version"
+  # - id: javascript
+  #   name: "JavaScript"
+  #   source: "solution.js"
+  #   run:
+  #     cmd: "/usr/bin/node"
+  #     args: ["{{source}}"]
+  #     limits:
+  #       wall_time_s: 9
+  #       max_processes: 64
+  #       memory_kb: 524288
+  #   version_cmd: "/usr/bin/node --version"
+  # verilog:
+  #   filename: "test.v"
+  #   compilation_options:
+  #     path: "/usr/bin/iverilog"
+  #   args: "{{ EXTRA_ARGS }} {{ FILENAME }}"
+  #   resource_limits:
+  #     time_limit: 6
+  #     process_limit: 100
+  #     memory_limit: 102400
+  #   runtime_options:
+  #     path: "a.out"
+  #     args: ""
+  #     resource_limits:
+  #       time_limit: 9
+  #       process_limit: 100
+  #       memory_limit: 102400 
+  #   version_cmd: "/usr/bin/iverilog -V" 
+  # # haskell:
+  # #   filename: "test.hs"
+  # #   compilation_options:
+  # #     path: "/usr/local/bin/stack"
+  # #     args: "ghc -- {{ FILENAME }} -o a.out {{ EXTRA_ARGS }}"
+  # #     resource_limits:
+  # #       time_limit: 6
+  # #       process_limit: 100
+  # #       memory_limit: 102400
+  # #   runtime_options:
+  # #     path: "a.out"
+  # #     args: ""
+  # #     resource_limits:
+  # #       time_limit: 9
+  # #       process_limit: 100
+  # #       memory_limit: 102400
+  # #   version_cmd: "/usr/local/bin/stack --version"
+  - id: zip
+    source: "test.zip.bs64"
+    build:
+      cmd: ""
+      limits:
+        wall_time_s: 6
+        max_processes: 100
+        memory_kb: 102400
+    run:
+      cmd: ""
+      limits:
+        wall_time_s: 9
+        max_processes: 100
+        memory_kb: 102400
+    version_cmd: "unzip -v"
+
+  
+    

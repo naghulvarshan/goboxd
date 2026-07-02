@@ -1,0 +1,23 @@
+request:
+  language: bash
+  source: |
+    #!/bin/bash
+    for i in {1..100}; do
+      echo "Processing: $i" > /dev/null
+    done
+    echo "Bash time test completed"
+  source_filename: solution.sh
+  run:
+    limits:
+      wall_time_s: 6
+      memory_kb: 102400
+      max_processes: 64
+  tests:
+    - stdin: ""
+      expected_stdout: "Bash time test completed\n"
+
+expected:
+  status: success
+  tests:
+    - status: accepted
+      stdout: "Bash time test completed\n"
